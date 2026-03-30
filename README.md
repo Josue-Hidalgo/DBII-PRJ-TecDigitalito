@@ -8,8 +8,7 @@ Este es un proyecto en el que se hace una red social de usuarios que pueden publ
 - [@Josue-Hidalgo](https://www.github.com/Josue-Hidalgo)
 
 
-![Logo](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/th5xamgrr6se0x5ro4g6.png)
-
+![Logo](<img width="1536" height="1024" alt="Logo" src="https://github.com/user-attachments/assets/dc419661-84d0-49bb-b74d-14910697099a" />)
 
 ## Instalacion
 
