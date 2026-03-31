@@ -1,16 +1,22 @@
 services:
   frontend:
     build: ./frontend
+    restart: unless-stopped
     ports:
       - "4200:4200"
     volumes:
       - ./frontend:/app
+    networks:
+      - app-network
 
   backend:
     ports:
       - "3000:3000"
+    command: npm run dev
     volumes:
       - ./backend:/app
+    environment:
+      - NODE_ENV=development
 
   mongo:
     ports:
@@ -37,4 +43,4 @@ services:
       - ./frontend/dist:/usr/share/nginx/html
 
 # Cómo lo ejecuto?
-# docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+# docker compose -f docker-compose.yml -f docker-compose.dev.yml up      - ./nginx.conf:/etc/nginx/nginx.conf:ro
