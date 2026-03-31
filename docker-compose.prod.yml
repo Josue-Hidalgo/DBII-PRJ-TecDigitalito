@@ -1,15 +1,12 @@
 services:
   nginx:
+    restart: always
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - ./frontend/dist:/usr/share/nginx/html
+      - ./nginx.conf:/etc/nginx/nginx.conf:rohttps://www.github.com/Josue-Hidalgo
 
   # Cómo lo ejecuto?  
   # docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-
-
-  # NO frontend (Angular ya compilado)
-  # NO puertos en backend
-  # NO puertos en bases de datos

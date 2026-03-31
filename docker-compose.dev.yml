@@ -6,6 +6,7 @@ services:
       - "4200:4200"
     volumes:
       - ./frontend:/app
+    command: npm start
     networks:
       - app-network
 
@@ -17,23 +18,33 @@ services:
       - ./backend:/app
     environment:
       - NODE_ENV=development
+    networks:
+      - app-network
 
   mongo:
     ports:
       - "27017:27017"
+    networks:
+      - app-network
 
   neo4j:
     ports:
       - "7474:7474"
       - "7687:7687"
+    networks:
+      - app-network
 
   cassandra:
     ports:
       - "9042:9042"
+    networks:
+      - app-network
 
   redis:
     ports:
       - "6379:6379"
+    networks:
+      - app-network
 
   nginx:
     ports:
@@ -41,6 +52,4 @@ services:
       - "443:443"
     volumes:
       - ./frontend/dist:/usr/share/nginx/html
-
-# Cómo lo ejecuto?
-# docker compose -f docker-compose.yml -f docker-compose.dev.yml up      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
