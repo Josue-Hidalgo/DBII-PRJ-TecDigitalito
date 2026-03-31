@@ -1,0 +1,40 @@
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "4200:4200"
+    volumes:
+      - ./frontend:/app
+
+  backend:
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/app
+
+  mongo:
+    ports:
+      - "27017:27017"
+
+  neo4j:
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+
+  cassandra:
+    ports:
+      - "9042:9042"
+
+  redis:
+    ports:
+      - "6379:6379"
+
+  nginx:
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./frontend/dist:/usr/share/nginx/html
+
+# Cómo lo ejecuto?
+# docker compose -f docker-compose.yml -f docker-compose.dev.yml up
