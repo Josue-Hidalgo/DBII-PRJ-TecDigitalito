@@ -3,10 +3,7 @@ services:
     build: ./frontend
     restart: unless-stopped
     ports:
-      - "4200:4200"
-    volumes:
-      - ./frontend:/app
-    command: npm start
+      - "4200:80"
     networks:
       - app-network
 
@@ -16,6 +13,8 @@ services:
     command: npm run dev
     volumes:
       - ./backend:/app
+      - /app/node_modules
+    working_dir: /app
     environment:
       - NODE_ENV=development
     networks:
@@ -51,5 +50,5 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./frontend/dist:/usr/share/nginx/html
+      - ./frontend/TecDigitalito/dist:/usr/share/nginx/html
       - ./nginx.conf:/etc/nginx/nginx.conf:ro

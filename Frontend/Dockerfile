@@ -2,12 +2,17 @@ FROM node:20
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY TecDigitalito/package*.json ./
 
 RUN npm install
 
-COPY . .
+COPY TecDigitalito/ .
 
-EXPOSE 4200
+RUN npm run build
 
-CMD ["npm", "start"]
+FROM nginx:alpine
+COPY --from=0 /app/dist/TecDigitalito/browser /usr/share/nginx/html
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
