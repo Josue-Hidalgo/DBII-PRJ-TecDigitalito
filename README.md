@@ -17,7 +17,7 @@ Este es un proyecto en el que se hace una red social de usuarios que pueden publ
 
 ### Desarrollo
 ```
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 ```
 
 ### Producción
