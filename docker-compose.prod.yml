@@ -1,23 +1,10 @@
 services:
   frontend:
-    build: 
+    build:
       context: ./frontend
-      dockerfile: ../docker/Dockerfile.prod
+      dockerfile: ../docker/Dockerfile
+      target: frontend-prod
     networks:
       - app-network
 
-  nginx:
-    restart: always
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./frontend/TecDigitalito/dist:/usr/share/nginx/html
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-    depends_on:
-      - frontend
-    networks:
-      - app-network
-
-# Cómo lo ejecuto?  
-# docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# Ejecutar con: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d

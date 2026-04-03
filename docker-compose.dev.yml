@@ -1,34 +1,30 @@
 services:
   frontend:
-    image: node:20
-    build: 
+    build:
       context: ./frontend
-      dockerfile: ../docker/Dockerfile.dev
-    working_dir: /app
+      dockerfile: ../docker/Dockerfile
+      target: frontend-dev
     volumes:
       - ./frontend/TecDigitalito:/app
       - /app/node_modules
     ports:
       - "4200:4200"
-    command: >
-      bash -c "
-      npm install -g @angular/cli &&
-      npm install &&
-      ng serve --host 0.0.0.0
-      "
     networks:
       - app-network
 
   backend:
+    build:
+      context: ./backend
+      dockerfile: ../docker/Dockerfile
+      target: backend
     ports:
       - "3000:3000"
-    command: npm run dev
     volumes:
       - ./backend:/app
       - /app/node_modules
-    working_dir: /app
     environment:
       - NODE_ENV=development
+    command: npm run dev
     networks:
       - app-network
 
@@ -58,6 +54,7 @@ services:
       - app-network
 
   nginx:
+    image: nginx:alpine
     ports:
       - "80:80"
       - "443:443"

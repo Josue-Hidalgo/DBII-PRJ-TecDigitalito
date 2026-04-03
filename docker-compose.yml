@@ -1,20 +1,21 @@
 services:
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: ../docker/Dockerfile
+      target: backend
     restart: always
-    ports:
-      - "3000:3000"
-    depends_on:
-      - cassandra
-      - mongo
-      - neo4j
-      - redis
     environment:
       - NODE_ENV=production
       - MONGO_URI=mongodb://mongo:27017/tecdigitalito_mongo_db
       - NEO4J_URI=bolt://neo4j:7687/tecdigitalito_neo4j_db
       - REDIS_URI=redis://redis:6379/tecdigitalito_redis_db
       - CASSANDRA_URI=cassandra://cassandra:9042/tecdigitalito_cassandra_db
+    depends_on:
+      - cassandra
+      - mongo
+      - neo4j
+      - redis
     networks:
       - app-network
 
