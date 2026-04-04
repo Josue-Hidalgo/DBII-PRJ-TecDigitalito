@@ -8,7 +8,7 @@ const testRoutes = require('./routes/test.routes')
 
 // Middlewares
 app.use(cors());
-app.use(express());
+app.use(express.json());
 
 // Usar Rutas
 app.use('/api', testRoutes);

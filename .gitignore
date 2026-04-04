@@ -14,8 +14,10 @@ logs
 *.log
 
 # Environment variables
-.env
-.env.*
+.env.local
+.env.development
+.env.production
+!.env
 
 # OS
 .DS_Store

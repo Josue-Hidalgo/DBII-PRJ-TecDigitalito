@@ -1,12 +1,10 @@
 services:
-  nginx:
-    restart: always
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./frontend/dist:/usr/share/nginx/html
-      - ./nginx.conf:/etc/nginx/nginx.conf:rohttps://www.github.com/Josue-Hidalgo
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: ../docker/Dockerfile
+      target: frontend-prod
+    networks:
+      - app-network
 
-  # Cómo lo ejecuto?  
-  # docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# Ejecutar con: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d

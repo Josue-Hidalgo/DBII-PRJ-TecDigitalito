@@ -1,73 +1,76 @@
 services:
-  frontend:
-    build:
-      context: ./frontend
-    networks:
-      - app-network
-
   backend:
-    build: ./backend
+    build:
+      context: ./Backend
+      dockerfile: ../docker/Dockerfile
+      target: backend
     restart: always
-    ports:
-      - "3000:3000"
+    env_file:
+      - ./Backend/.env
     depends_on:
       - cassandra
       - mongo
       - neo4j
       - redis
-    environment:
-      - NODE_ENV=production
-      - MONGO_URI=mongodb://mongo:27017/tecdigitalito_mongo_db
-      - NEO4J_URI=bolt://neo4j:7687/tecdigitalito_neo4j_db
-      - REDIS_URI=redis://redis:6379/tecdigitalito_redis_db
-      - CASSANDRA_URI=cassandra://cassandra:9042/tecdigitalito_cassandra_db
     networks:
       - app-network
 
   nginx:
-    image: nginx:latest
+    image: nginx:alpine
     restart: always
     ports:
       - "80:80"
     depends_on:
-      - frontend
       - backend
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./frontend/TecDigitalito/dist:/usr/share/nginx/html
+      - ./nginx.dev.conf:/etc/nginx/nginx.conf:ro
     networks:
       - app-network
 
   cassandra:
-    image: cassandra:latest
+    image: cassandra:4.1
     restart: always
+    environment:
+      - CASSANDRA_CLUSTER_NAME=TecDigitalitoCluster
+      - MAX_HEAP_SIZE=1G
+      - HEAP_NEWSIZE=256m
+      - JVM_OPTS=-Xms1G -Xmx1G -XX:MaxGCPauseMillis=200
+    command: ["cassandra", "-f"]
     volumes:
       - cassandra-data:/var/lib/cassandra
     networks:
       - app-network
 
   mongo:
-    image: mongo:latest
+    image: mongo:7.0
     restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=mongo
+      - MONGO_INITDB_ROOT_PASSWORD=mongo_pw
+      - MONGO_INITDB_DATABASE=tecdigitalito_mongo_db
+    command: ["mongod", "--wiredTigerCacheSizeGB", "0.256"]
     volumes:
       - mongo-data:/data/db
     networks:
       - app-network
 
   neo4j:
-    image: neo4j:latest
+    image: neo4j:5.15-community
     restart: always
     environment:
       - NEO4J_AUTH=neo4j/neo4j-pw
+      - NEO4J_dbms_memory_heap_initial__size=256m
+      - NEO4J_dbms_memory_heap_max__size=512m
+      - NEO4J_dbms_memory_pagecache_size=256m
     volumes:
       - neo4j-data:/data
     networks:
       - app-network
 
   redis:
-    image: redis:latest
+    image: redis:7.2-alpine
     restart: always
-    command: ["redis-server", "--appendonly", "yes"]
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "512mb", "--maxmemory-policy", "allkeys-lru"]
     volumes:
       - redis-data:/data
     networks:

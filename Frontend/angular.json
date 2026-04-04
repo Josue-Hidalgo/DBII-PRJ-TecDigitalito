@@ -2,11 +2,12 @@
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
   "cli": {
-    "packageManager": "npm"
+    "packageManager": "npm",
+    "analytics": false
   },
   "newProjectRoot": "projects",
   "projects": {
-    "TecDigitalito": {
+    "Frontend": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -56,10 +57,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "TecDigitalito:build:production"
+              "buildTarget": "Frontend:build:production"
             },
             "development": {
-              "buildTarget": "TecDigitalito:build:development"
+              "buildTarget": "Frontend:build:development"
             }
           },
           "defaultConfiguration": "development"

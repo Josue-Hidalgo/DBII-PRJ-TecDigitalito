@@ -1,22 +1,24 @@
 services:
   frontend:
-    build: ./frontend
-    restart: unless-stopped
+    build:
+      context: ./Frontend
+      dockerfile: ../docker/Dockerfile
+      target: frontend-dev
     ports:
-      - "4200:80"
+      - "4200:4200"
     networks:
       - app-network
 
   backend:
+    build:
+      context: ./Backend
+      dockerfile: ../docker/Dockerfile
+      target: backend
     ports:
       - "3000:3000"
-    command: npm run dev
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
-    working_dir: /app
     environment:
       - NODE_ENV=development
+    command: npm run dev
     networks:
       - app-network
 
@@ -46,9 +48,14 @@ services:
       - app-network
 
   nginx:
+    image: nginx:alpine
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./frontend/TecDigitalito/dist:/usr/share/nginx/html
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx.dev.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - app-network
