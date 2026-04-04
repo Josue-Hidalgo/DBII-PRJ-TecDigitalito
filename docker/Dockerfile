@@ -2,17 +2,16 @@ FROM node:24.14.0-alpine AS base
 WORKDIR /app
 
 FROM base AS frontend-dev
-COPY Frontend/package*.json ./
+COPY . ./
 RUN npm ci
 RUN npm install -g @angular/cli
-COPY Frontend/ .
 EXPOSE 4200
-CMD ["ng", "serve", "--host", "0.0.0.0"]
+CMD ["ng", "serve", "Frontend", "--host", "0.0.0.0"]
 
 FROM base AS frontend-build
-COPY Frontend/package*.json ./
+COPY package*.json ./
 RUN npm ci --only=production
-COPY Frontend/ .
+COPY src/ ./
 RUN npm run build
 
 FROM nginx:alpine AS frontend-prod

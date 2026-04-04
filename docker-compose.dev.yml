@@ -4,9 +4,6 @@ services:
       context: ./Frontend
       dockerfile: ../docker/Dockerfile
       target: frontend-dev
-    volumes:
-      - ./Frontend/TecDigitalito:/app
-      - /app/node_modules
     ports:
       - "4200:4200"
     networks:
@@ -14,14 +11,11 @@ services:
 
   backend:
     build:
-      context: ./backend
+      context: ./Backend
       dockerfile: ../docker/Dockerfile
       target: backend
     ports:
       - "3000:3000"
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
     environment:
       - NODE_ENV=development
     command: npm run dev

@@ -1,9 +1,16 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-users',
-  imports: [],
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './users.html',
   styleUrl: './users.css',
 })
-export class Users {}
+export class UsersComponent {
+  users = [
+    { name: 'John Doe', email: 'john@example.com' },
+    { name: 'Jane Smith', email: 'jane@example.com' }
+  ];
+}
