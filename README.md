@@ -15,24 +15,38 @@ Este es un proyecto en el que se hace una red social de usuarios que pueden publ
 - [Instalar Docker Engine](https://docs.docker.com/engine/install/)
 
 ### Desarrollo
+
+Iniciar el proyecto en modo desarrollo
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 ```
-# Ver logs en tiempo real
+
+Ver logs en tiempo real
+```bash
 docker-compose -f docker-compose.dev.yml logs -f backend
 docker-compose -f docker-compose.dev.yml logs -f frontend
+```
 
-# Detener todo
+Detener y borrar todo
+```bash
 docker-compose -f docker-compose.dev.yml down
+```
 
-# Reconstruir solo un servicio
+Reconstruir solo un servicio
+```bash
 docker-compose -f docker-compose.dev.yml up --build backend
+```
 
-# Entrar a un contenedor para debug
+Entrar a un contenedor para debug
+```bash
 docker-compose -f docker-compose.dev.yml exec backend sh
 docker-compose -f docker-compose.dev.yml exec frontend sh
 ```
 
 ### Producción
-```
+
+Iniciar el proyecto en modo producción
+```bash
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 ```
 
