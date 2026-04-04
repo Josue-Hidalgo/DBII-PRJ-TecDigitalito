@@ -1,7 +1,7 @@
 services:
   frontend:
     build:
-      context: ./frontend
+      context: ./Frontend
       dockerfile: ../docker/Dockerfile
       target: frontend-prod
     networks:

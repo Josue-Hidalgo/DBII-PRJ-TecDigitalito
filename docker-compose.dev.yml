@@ -1,11 +1,11 @@
 services:
   frontend:
     build:
-      context: ./frontend
+      context: ./Frontend
       dockerfile: ../docker/Dockerfile
       target: frontend-dev
     volumes:
-      - ./frontend/TecDigitalito:/app
+      - ./Frontend/TecDigitalito:/app
       - /app/node_modules
     ports:
       - "4200:4200"
