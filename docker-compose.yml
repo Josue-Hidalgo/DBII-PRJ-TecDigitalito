@@ -6,9 +6,10 @@ services:
       target: backend
     restart: always
     environment:
-      - NODE_ENV=production
-      - MONGO_URI=mongodb://mongo:27017/tecdigitalito_mongo_db
-      - NEO4J_URI=bolt://neo4j:7687/tecdigitalito_neo4j_db
+      - NODE_ENV=development
+      - PORT=3000
+      - MONGO_URI=mongodb://admin:password123@mongo:27017/tecdigitalito_mongo_db?authSource=admin
+      - NEO4J_URI=bolt://neo4j:neo4j-pw@neo4j:7687/tecdigitalito_neo4j_db
       - REDIS_URI=redis://redis:6379/tecdigitalito_redis_db
       - CASSANDRA_URI=cassandra://cassandra:9042/tecdigitalito_cassandra_db
     depends_on:
@@ -35,6 +36,8 @@ services:
   cassandra:
     image: cassandra:latest
     restart: always
+    environment:
+      - CASSANDRA_CLUSTER_NAME=TecDigitalitoCluster
     volumes:
       - cassandra-data:/var/lib/cassandra
     networks:
@@ -43,6 +46,10 @@ services:
   mongo:
     image: mongo:latest
     restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password123
+      - MONGO_INITDB_DATABASE=tecdigitalito_mongo_db
     volumes:
       - mongo-data:/data/db
     networks:
@@ -53,6 +60,7 @@ services:
     restart: always
     environment:
       - NEO4J_AUTH=neo4j/neo4j-pw
+      - NEO4J_DATABASE=tecdigitalito_neo4j_db
     volumes:
       - neo4j-data:/data
     networks:
