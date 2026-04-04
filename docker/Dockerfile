@@ -19,8 +19,9 @@ COPY --from=frontend-build /app/dist/Frontend/browser /usr/share/nginx/html
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
 
-FROM node:24.14.0-alpine AS backend
+FROM base AS backend
 COPY package*.json ./
+# CI=ContinuousIntegration =ñ npm install nada más que no hace cambios más allá (package-lock.json)
 RUN npm ci
 COPY . .
 EXPOSE 3000
