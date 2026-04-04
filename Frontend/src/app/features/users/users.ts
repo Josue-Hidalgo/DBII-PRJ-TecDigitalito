@@ -1,31 +1,9 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ApiService } from '../../core/services/api.service';
+import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-users',
-  standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './users.html',
-  styleUrls: ['./users.css']
+  styleUrl: './users.css',
 })
-
-export class UsersComponent implements OnInit {
-
-  users: any[] = [];
-
-  constructor(private api: ApiService) {}
-
-  ngOnInit(): void {
-    this.loadUsers();
-  }
-
-  loadUsers(): void {
-    this.api.getTest().subscribe({
-      next: (res) => {
-        this.users = res.data;
-      },
-      error: (err) => console.error(err)
-    });
-  }
-}
+export class Users {}
