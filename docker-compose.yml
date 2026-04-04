@@ -5,13 +5,8 @@ services:
       dockerfile: ../docker/Dockerfile
       target: backend
     restart: always
-    environment:
-      - NODE_ENV=development
-      - PORT=3000
-      - MONGO_URI=mongodb://admin:password123@mongo:27017/tecdigitalito_mongo_db?authSource=admin
-      - NEO4J_URI=bolt://neo4j:neo4j-pw@neo4j:7687/tecdigitalito_neo4j_db
-      - REDIS_URI=redis://redis:6379/tecdigitalito_redis_db
-      - CASSANDRA_URI=cassandra://cassandra:9042/tecdigitalito_cassandra_db
+    env_file:
+      - ./Backend/.env
     depends_on:
       - cassandra
       - mongo
