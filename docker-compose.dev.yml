@@ -6,9 +6,14 @@ services:
       target: frontend-dev
     ports:
       - "4200:4200"
+    volumes:
+      - ./frontend/TecDigitalito/src:/app/src
+      - ./frontend/TecDigitalito/package.json:/app/package.json
+      - ./frontend/TecDigitalito/angular.json:/app/angular.json
+    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
     networks:
       - app-network
-
+    
   backend:
     build:
       context: ./Backend
