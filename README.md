@@ -5,7 +5,9 @@ Este es un proyecto en el que se hace una red social de usuarios que pueden publ
 ## Autores
 
 - [@Josue-Hidalgo](https://www.github.com/Josue-Hidalgo)
-
+- [@DayRPK25](https://github.com/DayRPK25)
+- [@IanUgaldeTec](https://github.com/IanUgaldeTec)
+- [@PauloHerrera1](https://github.com/PauloHerrera1)
 
 <img width="1536" height="1024" alt="Logo" src="https://github.com/user-attachments/assets/dc419661-84d0-49bb-b74d-14910697099a" />
 
