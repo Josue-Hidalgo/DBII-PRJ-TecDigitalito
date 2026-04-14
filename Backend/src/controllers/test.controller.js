@@ -1,9 +1,18 @@
+// Para el hasheo de la contraseña
+const crypto = require('crypto');
 const User = require('../models/user.model');
+
+
+
+// Funcion para hashear contraseña
+function hashPassword(password, salt) {
+  return crypto.scryptSync(password, salt, 64).toString('hex');
+}
 
 // GET <- /api/test
 exports.getTest = async (req, res) => {
   try {
-    const users = await User.find();
+    const users = await User.find().select('-passwordHash -salt');
 
     res.json({
       message: 'Backend funcionando correctamente',
@@ -16,53 +25,55 @@ exports.getTest = async (req, res) => {
   }
 };
 
-// POST <- /api/users
-exports.createUser = async (req, res) => {
+// POST <- /api/auth/register
+exports.registerUser = async (req, res) => {
   try {
-    const { name, email } = req.body;
+    const { username, password, fullName, birthDate, avatar } = req.body;
 
-    const newUser = new User({ name, email});
+    if (!username || !password || !fullName || !birthDate) {
+      return res.status(400).json({
+        message: 'Faltan campos obligatorios',
+      });
+    }
+
+    const existingUser = await User.findOne({
+      username: username.trim().toLowerCase(),
+    });
+
+    if (existingUser) {
+      return res.status(409).json({
+        message: 'El nombre de usuario ya existe',
+      });
+    }
+
+    const salt = crypto.randomBytes(16).toString('hex');
+    const passwordHash = hashPassword(password, salt);
+
+    const newUser = new User({
+      username: username.trim().toLowerCase(),
+      passwordHash,
+      salt,
+      fullName: fullName.trim(),
+      birthDate,
+      avatar: avatar || '',
+    });
+
     await newUser.save();
 
-    res.status(201).json(newUser);
-  } catch (error) {
-
-    res.status(500).json({
-      error: error.message,
-    });
-  }
-};
-
-// POST <- /api/users/seed
-exports.seedUsers = async (req, res) => {
-  try {
-    // Datos de testing para usuarios
-    const testUsers = [
-      { name: 'Juan Pérez', email: 'juan.perez@test.com' },
-      { name: 'María García', email: 'maria.garcia@test.com' },
-      { name: 'Carlos López', email: 'carlos.lopez@test.com' },
-      { name: 'Ana Martínez', email: 'ana.martinez@test.com' },
-      { name: 'Luis Rodríguez', email: 'luis.rodriguez@test.com' },
-      { name: 'Sofía Hernández', email: 'sofia.hernandez@test.com' },
-      { name: 'Diego González', email: 'diego.gonzalez@test.com' },
-      { name: 'Laura Sánchez', email: 'laura.sanchez@test.com' },
-      { name: 'Roberto Ramírez', email: 'roberto.ramirez@test.com' },
-      { name: 'Patricia Torres', email: 'patricia.torres@test.com' }
-    ];
-
-    // Limpiar usuarios existentes
-    await User.deleteMany({});
-    console.log('Usuarios existentes eliminados');
-
-    // Insertar usuarios de testing
-    const insertedUsers = await User.insertMany(testUsers);
-    
     res.status(201).json({
-      message: `Se insertaron ${insertedUsers.length} usuarios de testing`,
-      users: insertedUsers
+      message: 'Usuario registrado correctamente',
+      user: {
+        id: newUser._id,
+        username: newUser.username,
+        fullName: newUser.fullName,
+        birthDate: newUser.birthDate,
+        avatar: newUser.avatar,
+        createdAt: newUser.createdAt,
+      },
     });
   } catch (error) {
     res.status(500).json({
+      message: 'Error al registrar usuario',
       error: error.message,
     });
   }
@@ -72,10 +83,10 @@ exports.seedUsers = async (req, res) => {
 exports.deleteAllUsers = async (req, res) => {
   try {
     const result = await User.deleteMany({});
-    
+
     res.json({
       message: `Se eliminaron ${result.deletedCount} usuarios`,
-      deletedCount: result.deletedCount
+      deletedCount: result.deletedCount,
     });
   } catch (error) {
     res.status(500).json({
