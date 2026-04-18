@@ -1,22 +1,30 @@
 const cassandra = require('cassandra-driver');
 
+let client;
+
 const connectCassandra = async () => {
     try {
-        const client = new cassandra.Client({
-            contactPoints: [process.env.CASSANDRA_HOST],
-            localDataCenter: 'datacenter1',
-            keyspace: process.env.CASSANDRA_KEYSPACE
+        client = new cassandra.Client({
+            contactPoints: [process.env.CASSANDRA_HOST || 'cassandra'],
+            localDataCenter: process.env.CASSANDRA_DC || 'datacenter1',
+            credentials: {
+                username: process.env.CASSANDRA_USER || '',
+                password: process.env.CASSANDRA_PASSWORD || ''
+            }
         });
 
         await client.connect();
-
         console.log('Cassandra conectado');
-        return client;
-
     } catch (error) {
-        console.error('Error conectando a Cassandra:', error.message);
+        console.error('Error conectando a Cassandra: ', error.message);
         process.exit(1);
     }
 };
 
+const getClient = () => {
+    if (!client) throw new Error('Cassandra no está conectado');
+    return client;
+};
+
 module.exports = connectCassandra;
+module.exports.getClient = getClient;

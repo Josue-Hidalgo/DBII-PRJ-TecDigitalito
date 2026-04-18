@@ -10,9 +10,10 @@ const PORT = process.env.PORT || 3000;
 
 // Conectar a Mongo
 connectMongoDB();
-connectCassandra();
 connectRedis();
 connectNeo4j();
+connectCassandra();
+
 
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en puerto ${PORT}`)
