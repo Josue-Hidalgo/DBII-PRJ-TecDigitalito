@@ -35,10 +35,17 @@ npm ci
 ## Ejecución
 - En carpeta /Frontend:
 ```bash
+npm start
 ```
 
 - En carpeta /Backend:
+-- En ambiente de desarrollo:
 ```bash
+npm run dev
+```
+-- En ambiente de producción:
+```bash
+npm run start
 ```
 
 - En carperta /: 
