@@ -10,7 +10,7 @@ const connectCassandra = async () => {
             credentials: {
                 username: process.env.CASSANDRA_USER || '',
                 password: process.env.CASSANDRA_PASSWORD || ''
-            }
+            } 
         });
 
         await client.connect();
