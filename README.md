@@ -21,7 +21,7 @@ Este es un proyecto en el que se hace una red social de usuarios que pueden publ
 ```bash
 nvm version
 ```
-- Download Node
+- Instalar Node
 ```bash
 nvm install 24.11.0
 ```
@@ -31,6 +31,11 @@ nvm use 24.11.0
 ```bash
 npm ci
 ```
+- Instalar Angular CLI
+
+```bash
+npm install -g @angular/cli
+```
 
 ## Ejecución
 - En carpeta /Frontend:
@@ -39,11 +44,10 @@ npm start
 ```
 
 - En carpeta /Backend:
--- En ambiente de desarrollo:
 ```bash
 npm run dev
 ```
--- En ambiente de producción:
+O bien:
 ```bash
 npm run start
 ```
