@@ -1,0 +1,65 @@
+services:
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: ../docker/Dockerfile
+      target: frontend-dev
+    ports:
+      - "4200:4200"
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/package.json:/app/package.json
+      - ./frontend/angular.json:/app/angular.json
+    networks:
+      - app-network
+    
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: ../docker/Dockerfile
+      target: backend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    command: npm run dev
+    networks:
+      - app-network
+
+  mongo:
+    ports:
+      - "27017:27017"
+    networks:
+      - app-network
+
+  neo4j:
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    networks:
+      - app-network
+
+  cassandra:
+    ports:
+      - "9042:9042"
+    networks:
+      - app-network
+
+  redis:
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.dev.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - app-network

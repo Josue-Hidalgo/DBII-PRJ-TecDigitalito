@@ -1,0 +1,10 @@
+services:
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: ../docker/Dockerfile
+      target: frontend-prod
+    networks:
+      - app-network
+
+# Ejecutar con: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d

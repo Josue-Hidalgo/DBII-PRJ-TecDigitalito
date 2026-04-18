@@ -7,8 +7,9 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js"
+    "start": "node --max-old-space-size=2048 src/server.js",
+    "dev": "nodemon --max-old-space-size=2048 src/server.js",
+    "seed": "node src/scripts/seedUsers.js"
   },
   "dependencies": {
     "cassandra-driver": "^4.8.0",

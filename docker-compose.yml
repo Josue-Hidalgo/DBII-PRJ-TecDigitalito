@@ -1,9 +1,35 @@
 services:
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: ../docker/Dockerfile
+      target: backend
+    restart: always
+    env_file:
+      - ./Backend/.env
+    depends_on:
+      - cassandra
+      - mongo
+      - neo4j
+      - redis
+    networks:
+      - app-network
+
+  nginx:
+    image: nginx:alpine
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    volumes:
+      - ./nginx.dev.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - app-network
+
   cassandra:
     image: cassandra:4.1
     restart: always
-    ports:
-      - "9042:9042"
     environment:
       - CASSANDRA_CLUSTER_NAME=TecDigitalitoCluster
       - MAX_HEAP_SIZE=1G
@@ -18,8 +44,6 @@ services:
   mongo:
     image: mongo:7.0
     restart: always
-    ports:
-      - "27017:27017"
     environment:
       - MONGO_INITDB_ROOT_USERNAME=mongo
       - MONGO_INITDB_ROOT_PASSWORD=mongo_pw
@@ -33,11 +57,11 @@ services:
   neo4j:
     image: neo4j:5.15-community
     restart: always
-    ports:
-      - "7474:7474"
-      - "7687:7687"
     environment:
       - NEO4J_AUTH=neo4j/neo4j-pw
+      - NEO4J_dbms_memory_heap_initial__size=256m
+      - NEO4J_dbms_memory_heap_max__size=512m
+      - NEO4J_dbms_memory_pagecache_size=256m
     volumes:
       - neo4j-data:/data
     networks:
@@ -46,8 +70,7 @@ services:
   redis:
     image: redis:7.2-alpine
     restart: always
-    ports:
-      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "512mb", "--maxmemory-policy", "allkeys-lru"]
     volumes:
       - redis-data:/data
     networks:
