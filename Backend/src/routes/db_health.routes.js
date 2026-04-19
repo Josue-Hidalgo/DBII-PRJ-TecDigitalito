@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const runHealthCheck = require('../config/healthCheck');
+const runHealthCheck = require('../controllers/Health.controller.js');
 
 router.get('/health', async (req, res) => {
     try {
