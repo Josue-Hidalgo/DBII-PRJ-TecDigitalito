@@ -5,7 +5,7 @@ const app = express();
 
 // Importar Rutas
 const testRoutes = require('./routes/test.routes')
-const healthRoutes = require('./routes/health.routes');
+const healthRoutes = require('./routes/db_health.routes');
 
 // Middlewares
 app.use(cors());
