@@ -1,6 +1,8 @@
 const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 const User = require('../models/User.model');
+// ── Integración Cassandra (Punto Extra: audit) ────────────────────────────────
+const { auditChange } = require('./Audit');
 
 /**
  * Hashea una contraseña usando PBKDF2 con el salt dado.
@@ -77,11 +79,23 @@ const registerUser = async ({ username, password, fullName, birthDate, email, ph
     }
     throw err;
   }
-  
 
   // Sincronizar con Neo4j para el grafo social
   const { syncUserToGraph } = require('./Social');
   await syncUserToGraph({ userId, username, fullName: fullName.trim(), avatar: photoBase64 || '' });
+
+  // ── Audit trail en Cassandra (Punto Extra) ────────────────────────────────
+  auditChange({
+    tableName:  'users',
+    recordId:   userId,
+    operation:  'CREATE',
+    userId,
+    newValues: {
+      username:  username.trim().toLowerCase(),
+      fullName:  fullName.trim(),
+      email:     (email || '').trim().toLowerCase(),
+    },
+  });
 
   return {
     userId,

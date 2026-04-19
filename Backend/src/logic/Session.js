@@ -8,6 +8,8 @@ const {
   deleteRememberToken,
 } = require('../models/RememberMe.model');
 const { enqueueNotification } = require('../models/NotificationQueue.model');
+// ── Integración Cassandra (HU-05, HU-10) ─────────────────────────────────────
+const { logSessionActivity, logSecurityEvent } = require('./Audit');
 
 /**
  * Cierra sesión invalidando el token de sesión (HU-05).
@@ -27,6 +29,15 @@ const logout = async ({ sessionToken, ip = 'unknown', userAgent = 'unknown' }) =
     await deleteSession(sessionToken, session.user_id);
     // Invalidar cookie remember_me asociada (HU-05)
     await deleteRememberToken(session.user_id);
+
+    // Registrar en Cassandra (HU-10)
+    logSessionActivity({
+      userId:    session.user_id,
+      sessionId: sessionToken,
+      action:    'logout',
+      ip,
+      userAgent,
+    });
   } else {
     // Token no encontrado o ya expirado: aun así responder OK (idempotente)
     await deleteSession(sessionToken);
@@ -46,24 +57,24 @@ const logout = async ({ sessionToken, ip = 'unknown', userAgent = 'unknown' }) =
 const invalidateAllSessions = async ({ userId }) => {
   await deleteAllUserSessions(userId);
   await deleteRememberToken(userId);
+
+  // Registrar en Cassandra
+  logSessionActivity({
+    userId,
+    sessionId: 'all',
+    action:    'logout',
+    ip:        'system',
+    userAgent: 'system',
+  });
+
   return { message: 'Todas las sesiones han sido cerradas.' };
 };
 
 /**
  * Valida un token de sesión o de remember_me (HU-06).
  *
- * Estrategia:
- *  1. Intentar como session token directo.
- *  2. Si no existe, intentar como remember_me token buscando por userId
- *     (el cliente debe enviar también el userId en este caso, o el token
- *     puede ser un JWT que contenga el userId — aquí se recibe como parámetro).
- *
- * Nota: en una implementación completa, el token de sesión puede ser un JWT
- * firmado que contenga el userId; aquí se asume token opaco y se espera que
- * el cliente envíe userId + rememberToken cuando intenta renovar desde cookie.
- *
  * @param {string} token  - session token opaco
- * @param {object} [opts] - { userId, rememberToken, userAgent } para validación remember_me
+ * @param {object} [opts] - { userId, rememberToken, userAgent, ip, email } para validación remember_me
  * @returns {Promise<{ valid: boolean, session?: object, reason?: string }>}
  */
 const validateSession = async (token, opts = {}) => {
@@ -90,8 +101,33 @@ const validateSession = async (token, opts = {}) => {
         user_agent: opts.userAgent || 'unknown',
         timestamp:  Date.now(),
       });
+
+      // Registrar en Cassandra
+      logSecurityEvent({
+        eventType: 'suspicious',
+        userId:    opts.userId,
+        ip:        opts.ip || 'unknown',
+        details:   JSON.stringify({ reason: 'remember_me_user_agent_mismatch' }),
+      });
+      logSessionActivity({
+        userId:    opts.userId,
+        sessionId: 'remember_me',
+        action:    'expire',
+        ip:        opts.ip || 'unknown',
+        userAgent: opts.userAgent || 'unknown',
+      });
+
       return { valid: false, reason: 'actividad_sospechosa' };
     }
+
+    // Remember me válido: registrar renovación
+    logSessionActivity({
+      userId:    opts.userId,
+      sessionId: 'remember_me',
+      action:    'remember_me',
+      ip:        opts.ip || 'unknown',
+      userAgent: opts.userAgent || 'unknown',
+    });
 
     return { valid: true, session: { user_id: opts.userId, via: 'remember_me' } };
   }
