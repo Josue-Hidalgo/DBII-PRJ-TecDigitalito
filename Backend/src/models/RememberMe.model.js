@@ -1,4 +1,4 @@
-const { getClient } = require('../../config/redis');
+const { getClient } = require('../config/redis');
 const crypto = require('crypto');
 
 // TTL por defecto: 30 días en segundos (HU-06)

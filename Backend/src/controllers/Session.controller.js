@@ -2,7 +2,7 @@ const {
   logout,
   invalidateAllSessions,
   validateSession,
-} = require('../../logic/Session');
+} = require('../logic/Session');
 
 // ── POST /api/session/logout  (HU-05) ─────────────────────────────────────────
 exports.logout = async (req, res) => {

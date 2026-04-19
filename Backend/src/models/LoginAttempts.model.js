@@ -1,4 +1,4 @@
-const { getClient } = require('../../config/redis');
+const { getClient } = require('../config/redis');
 
 // Ventana deslizante desde el último intento fallido (HU-03)
 const ATTEMPTS_TTL      = parseInt(process.env.LOGIN_ATTEMPTS_TTL_SECONDS) || 15 * 60; // 15 min

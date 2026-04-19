@@ -1,4 +1,4 @@
-const { getClient } = require('../../config/redis');
+const { getClient } = require('../config/redis');
 const crypto = require('crypto');
 
 // Expiración corta: 20 minutos (HU-07 — token de un solo uso)

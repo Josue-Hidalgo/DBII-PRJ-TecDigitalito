@@ -4,8 +4,6 @@ const mongoose = require('mongoose');
 // Viven en sus propias colecciones (Section, Content) para soportar
 // árboles de profundidad arbitraria sin inflar el documento (HU-12, HU-13).
 const courseSchema = new mongoose.Schema({
-  _id: { type: String, required: true },
-
   codigo:      { type: String, required: true, unique: true, trim: true },
   nombre:      { type: String, required: true, trim: true },
   descripcion: { type: String, required: true },

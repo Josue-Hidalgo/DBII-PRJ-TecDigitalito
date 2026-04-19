@@ -1,4 +1,4 @@
-const { getDriver } = require('../../config/neo4j');
+const { getDriver } = require('../config/neo4j');
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers internos

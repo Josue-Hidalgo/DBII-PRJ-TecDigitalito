@@ -2,7 +2,7 @@ const {
   requestPasswordReset,
   resetPassword,
   changePassword,
-} = require('../../logic/Password');
+} = require('../logic/Password');
 
 // ── POST /api/password/forgot  (HU-07 paso 1) ────────────────────────────────
 exports.forgotPassword = async (req, res) => {

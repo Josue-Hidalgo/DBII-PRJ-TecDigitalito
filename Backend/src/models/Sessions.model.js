@@ -1,4 +1,4 @@
-const { getClient } = require('../../config/redis');
+const { getClient } = require('../config/redis');
 
 // TTL por defecto: 2 horas en segundos (sliding window, HU-06)
 const SESSION_TTL = parseInt(process.env.SESSION_TTL_SECONDS) || 7200;

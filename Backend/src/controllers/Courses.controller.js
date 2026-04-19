@@ -6,7 +6,7 @@ const {
   getEnrolledStudents,
   getTeacherCourses,
   cloneCourse,
-} = require('../../logic/Coursemanagement');
+} = require('../logic/Coursemanagement');
 
 // POST /api/courses  — HU-11
 exports.createCourse = async (req, res) => {

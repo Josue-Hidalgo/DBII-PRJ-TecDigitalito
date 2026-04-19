@@ -1,4 +1,4 @@
-const { getClient } = require('../../config/redis');
+const { getClient } = require('../config/redis');
 
 // TTL de bloqueo: 30 minutos por defecto (HU-03: desbloqueo automático)
 const BLOCK_TTL = parseInt(process.env.BLOCK_TTL_SECONDS) || 30 * 60;

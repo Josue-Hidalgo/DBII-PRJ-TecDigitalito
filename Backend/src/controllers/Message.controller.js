@@ -5,7 +5,7 @@ const {
   sendDirectMessage,
   getDirectMessages,
   getConversations,
-} = require('../../logic/Messages');
+} = require('../logic/Messages');
 
 // POST /api/messages/course  — HU-17 / HU-26
 exports.sendCourseQuery = async (req, res) => {

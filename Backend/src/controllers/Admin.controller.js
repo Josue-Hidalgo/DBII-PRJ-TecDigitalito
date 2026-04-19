@@ -8,7 +8,7 @@
  * GET /api/admin/login-attempts/:userId — Intentos de login de un usuario
  * GET /api/admin/login-attempts-ip/:ip  — Intentos de login desde una IP
  */
-
+ 
 const {
   getUserActivityLog,
   getSecurityEvents,
@@ -16,7 +16,7 @@ const {
   getAuditTrailByDate,
   getLoginAttemptsByUser,
   getLoginAttemptsByIp,
-} = require('../../logic/Audit');
+} = require('../logic/Audit');
 
 // GET /api/admin/activity/:userId  (HU-10)
 exports.getUserActivity = async (req, res) => {

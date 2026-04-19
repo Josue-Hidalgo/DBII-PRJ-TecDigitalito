@@ -18,7 +18,7 @@ const {
     getFriends,
     getFriendCourses,
     getCoursemates,
-} = require('../../logic/Social');
+} = require('../logic/Social');
 
 // ── GET /api/social/users/search?q=término  (HU-29) ──────────────────────────
 exports.searchUsers = async (req, res) => {

@@ -56,10 +56,8 @@ const registerUser = async ({ username, password, fullName, birthDate, email, ph
   // Generar salt y hash
   const salt         = crypto.randomBytes(32).toString('hex');
   const passwordHash = hashPassword(password, salt);
-  const userId       = uuidv4();
 
   const user = new User({
-    _id:          userId,
     username:     username.trim().toLowerCase(),
     passwordHash,
     salt,
@@ -82,14 +80,14 @@ const registerUser = async ({ username, password, fullName, birthDate, email, ph
 
   // Sincronizar con Neo4j para el grafo social
   const { syncUserToGraph } = require('./Social');
-  await syncUserToGraph({ userId, username, fullName: fullName.trim(), avatar: photoBase64 || '' });
+  await syncUserToGraph({ userId: user._id.toString(), username, fullName: fullName.trim(), avatar: photoBase64 || '' });
 
   // ── Audit trail en Cassandra (Punto Extra) ────────────────────────────────
   auditChange({
     tableName:  'users',
-    recordId:   userId,
+    recordId:   user._id.toString(),
     operation:  'CREATE',
-    userId,
+    userId: user._id.toString(),
     newValues: {
       username:  username.trim().toLowerCase(),
       fullName:  fullName.trim(),
@@ -98,7 +96,7 @@ const registerUser = async ({ username, password, fullName, birthDate, email, ph
   });
 
   return {
-    userId,
+    userId: user._id.toString(),
     username: user.username,
     message:  'Usuario registrado correctamente.',
   };

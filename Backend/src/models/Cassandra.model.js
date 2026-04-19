@@ -13,7 +13,7 @@
  * Cassandra responda con éxito.
  */
 
-const { getClient } = require('../../config/cassandra');
+const { getClient } = require('../config/cassandra');
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Inicialización del keyspace y tablas

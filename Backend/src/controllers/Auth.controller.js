@@ -1,5 +1,5 @@
-const { registerUser } = require('../../logic/Register');
-const { login }        = require('../../logic/Login');
+const { registerUser } = require('../logic/Register');
+const { login }        = require('../logic/Login');
 
 // ── POST /api/auth/register  (HU-01) ─────────────────────────────────────────
 exports.register = async (req, res) => {

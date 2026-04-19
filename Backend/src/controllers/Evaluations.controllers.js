@@ -3,7 +3,7 @@ const {
   submitEvaluation,
   getStudentEvalResults,
   getEvaluationResults,
-} = require('../../logic/Evaluations');
+} = require('../logic/Evaluations');
 
 // POST /api/evaluations  — HU-14
 exports.createEvaluation = async (req, res) => {
