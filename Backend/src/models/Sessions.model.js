@@ -1,76 +1,122 @@
 const { getClient } = require('../../config/redis');
 
-// TTL por defecto: 2 horas en segundos
+// TTL por defecto: 2 horas en segundos (sliding window, HU-06)
 const SESSION_TTL = parseInt(process.env.SESSION_TTL_SECONDS) || 7200;
 const KEY = (sessionId) => `session:${sessionId}`;
+const INDEX_KEY = (userId) => `user_sessions:${userId}`;
 
 /**
  * Crea una sesión nueva en Redis al autenticar correctamente (HU-02).
- * @param {string} sessionId  - Token / ID de sesión generado en la capa de auth
+ * También indexa el sessionId bajo user_sessions:{userId} para poder
+ * invalidar todas las sesiones de un usuario en O(n) sin SCAN (HU-05 / HU-08).
+ *
+ * @param {string} sessionId  - Token opaco generado en Auth (crypto.randomBytes)
  * @param {object} payload    - { user_id, ip, dispositivo, user_agent }
- * @returns {Promise<void>}
  */
 const createSession = async (sessionId, payload) => {
   const client = getClient();
   const now = Date.now();
+
   const data = {
-    user_id:    payload.user_id,
-    token:      sessionId,
-    ip:         payload.ip         || 'unknown',
+    user_id:     payload.user_id,
+    token:       sessionId,
+    ip:          payload.ip          || 'unknown',
     dispositivo: payload.dispositivo || 'unknown',
-    user_agent: payload.user_agent || 'unknown',
-    created_at: now,
-    expires_at: now + SESSION_TTL * 1000,
+    user_agent:  payload.user_agent  || 'unknown',
+    created_at:  now,
+    expires_at:  now + SESSION_TTL * 1000,
   };
+
+  // Guardar sesión
   await client.setEx(KEY(sessionId), SESSION_TTL, JSON.stringify(data));
+
+  // Índice secundario: Set de sessionIds por usuario (TTL un poco mayor que la sesión)
+  await client.sAdd(INDEX_KEY(payload.user_id), sessionId);
+  await client.expire(INDEX_KEY(payload.user_id), SESSION_TTL + 60);
 };
 
 /**
  * Obtiene los datos de una sesión activa.
- * Renueva el TTL (sliding window) si la sesión existe.
+ * Implementa sliding window: renueva el TTL en cada acceso (HU-06).
+ *
  * @param {string} sessionId
- * @returns {Promise<object|null>}
+ * @returns {Promise<object|null>}  null si no existe o expiró
  */
 const getSession = async (sessionId) => {
   const client = getClient();
   const raw = await client.get(KEY(sessionId));
   if (!raw) return null;
-  // Sliding window: renueva TTL en cada acceso (HU-06)
+
+  const session = JSON.parse(raw);
+
+  // Sliding window: renova TTL en cada petición autenticada
   await client.expire(KEY(sessionId), SESSION_TTL);
-  return JSON.parse(raw);
+
+  return session;
 };
 
 /**
  * Elimina una sesión — cierre de sesión manual (HU-05).
- * El token queda inválido inmediatamente, sin esperar al TTL.
+ * El token queda inválido de inmediato, sin esperar el TTL.
+ *
  * @param {string} sessionId
+ * @param {string} [userId]  - Si se proporciona, limpia también del índice secundario
  */
-const deleteSession = async (sessionId) => {
+const deleteSession = async (sessionId, userId = null) => {
   const client = getClient();
   await client.del(KEY(sessionId));
+
+  if (userId) {
+    await client.sRem(INDEX_KEY(userId), sessionId);
+  }
 };
 
 /**
- * Elimina todas las sesiones de un usuario.
- * Se usa al detectar actividad sospechosa o al cambiar contraseña (HU-04 / HU-08).
- * SCAN es O(n) pero aceptable; en producción considerar índice secundario.
+ * Elimina TODAS las sesiones de un usuario (HU-05 / HU-08 / HU-04).
+ * Usa el índice secundario user_sessions:{userId} para evitar SCAN global.
+ *
  * @param {string} userId
  */
 const deleteAllUserSessions = async (userId) => {
   const client = getClient();
-  let cursor = 0;
-  do {
-    const result = await client.scan(cursor, { MATCH: 'session:*', COUNT: 100 });
-    cursor = result.cursor;
-    for (const key of result.keys) {
-      const raw = await client.get(key);
-      if (!raw) continue;
-      const session = JSON.parse(raw);
-      if (session.user_id === userId) {
-        await client.del(key);
-      }
+
+  const sessionIds = await client.sMembers(INDEX_KEY(userId));
+
+  if (sessionIds.length > 0) {
+    const pipeline = client.multi();
+    for (const sid of sessionIds) {
+      pipeline.del(KEY(sid));
     }
-  } while (cursor !== 0);
+    pipeline.del(INDEX_KEY(userId));
+    await pipeline.exec();
+  }
 };
 
-module.exports = { createSession, getSession, deleteSession, deleteAllUserSessions };
+/**
+ * Lista todas las sesiones activas de un usuario (panel admin / HU-10).
+ *
+ * @param {string} userId
+ * @returns {Promise<object[]>}
+ */
+const getUserSessions = async (userId) => {
+  const client = getClient();
+  const sessionIds = await client.sMembers(INDEX_KEY(userId));
+
+  const sessions = [];
+  for (const sid of sessionIds) {
+    const raw = await client.get(KEY(sid));
+    if (raw) sessions.push(JSON.parse(raw));
+    else await client.sRem(INDEX_KEY(userId), sid); // limpiar stale refs
+  }
+
+  return sessions;
+};
+
+module.exports = {
+  createSession,
+  getSession,
+  deleteSession,
+  deleteAllUserSessions,
+  getUserSessions,
+  SESSION_TTL,
+};
