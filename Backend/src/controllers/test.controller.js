@@ -2,8 +2,6 @@
 const crypto = require('crypto');
 const User = require('../models/user.model');
 
-
-
 // Funcion para hashear contraseña
 function hashPassword(password, salt) {
   return crypto.scryptSync(password, salt, 64).toString('hex');
