@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
-const { getClient: getRedis } = require('./redis');
-const { getDriver: getNeo4j } = require('./neo4j');
-const { getClient: getCassandra } = require('./cassandra');
+const { getClient: getRedis } = require('../config/redis');
+const { getDriver: getNeo4j } = require('../config/neo4j');
+const { getClient: getCassandra } = require('../config/cassandra');
 
 const checkMongo = async () => {
     // 0 = desconectado, 1 = conectado
