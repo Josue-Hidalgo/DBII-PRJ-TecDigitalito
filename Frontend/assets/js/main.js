@@ -267,7 +267,15 @@ async function saveCourse() {
 
   showSpinner();
   try {
-    const { ok, data } = await api('POST', '/api/courses', { codigo, nombre, descripcion, fecha_inicio, fecha_fin, foto, docente_id: currentUser._id || currentUser.user_id });
+    const { ok, data } = await api('POST', '/api/courses', { 
+      teacherId: currentUser._id || currentUser.user_id,
+      code: codigo, 
+      name: nombre, 
+      description: descripcion, 
+      startDate: fecha_inicio, 
+      endDate: fecha_fin, 
+      photoBase64: foto 
+    });
     if (ok) {
       showAlert('createCourseAlert', 'Â¡Curso creado exitosamente!', 'success');
       setTimeout(() => showPage('page-my-courses'), 1200);
