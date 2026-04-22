@@ -1,0 +1,148 @@
+Tarea Programada #1
+
+Tarea Programada #1
+• La tarea se debe entregar en el Github, junto con los documentos según el profesor haya asignado los grupos.
+• Toda tarea debe ser defendida ante el profesor, de tal manera todos los estudiantes deben poder explicar la solución satisfactoriamente.
+
+TEC Digitalito
+La tarea consiste en implementar alguna funcionalidad de un sitio para dar clases virtuales. En general un docente debe poder definir cursos y los estudiantes deben poder matricularse para llevarlo.
+
+En general el grupo debe decidir en cuál base de datos se va a hacer la persistencia de cada uno de los requerimientos, la única regla es que tienen que usar al menos 4 bases de datos distintas para hacer la tarea.
+
+Se permite el uso de bases de datos en la nube y también instaladas localmente en contenedores.
+
+Los requerimientos específicos son los siguientes:
+
+Historias de Usuario:
+
+1. Registro: como usuario debo poder auto registrarme en la plataforma.
+
+• Los usuarios deben tener al menos la siguiente información:
+i. User name
+ii. Password – Se debe guardar hasheada
+iii. Salt – Sal para la encriptación del password
+iv. Nombre Completo
+v. Fecha de Nacimiento
+vi. Foto o avatar del usuario
+
+2. Inicio de sesión: Como usuario registrado quiero iniciar sesión con mi nombre de usuario y contraseña para acceder de forma segura a la plataforma.
+
+• El sistema valida las credenciales usando contraseñas hasheadas y con salt.
+• Si las credenciales son incorrectas, muestra el mensaje genérico “Credenciales inválidas”.
+• Se registra la fecha y hora del login exitoso.
+
+3. Bloqueo: Como usuario quiero que mi cuenta se bloquee temporalmente después de varios intentos fallidos para evitar accesos indebidos.
+
+• La cuenta se bloquea después de 5 intentos fallidos.
+• Se desbloquea automáticamente después de un tiempo definido.
+• Se envía una notificación por correo informando del intento fallido.
+
+4. Actividad Sospechosa: como usuario quiero recibir notificaciones cuando haya un intento de acceso anormal para saber si alguien intenta entrar sin permiso.
+
+• Se registra en bitácora el intento sospechoso.
+• Se envía un correo alertando al usuario.
+
+5. Cerrar Sesión: como usuario quiero cerrar mi sesión para evitar que otras personas usen mi cuenta.
+
+• Se invalidan los tokens y la sesión activa.
+• El usuario vuelve a la pantalla de login.
+
+6. Recordarme: como usuario frecuente quiero mantener mi sesión iniciada para no escribir mis credenciales cada vez.
+
+• Se usa una cookie segura (HttpOnly y Secure).
+• La cookie expira automáticamente en un tiempo definido.
+• Se invalida si se detecta actividad sospechosa.
+
+7. Recuperar: Como usuario que olvidó su contraseña quiero restablecerla usando un enlace enviado a mi correo para recuperar el acceso.
+
+• Se genera un token de un solo uso con expiración corta.
+• El enlace permite ingresar una nueva contraseña.
+• El token queda invalidado después del uso.
+
+8. Cambio: Como usuario autenticado quiero cambiar mi contraseña para mejorar la seguridad de mi cuenta.
+
+• El sistema solicita la contraseña actual.
+• La nueva contraseña debe cumplir la política de seguridad.
+
+9. Accesibilidad: como usuario con necesidades especiales quiero que el formulario de inicio de sesión sea accesible para poder usar el sistema sin barreras.
+
+• Compatible con lectores de pantalla.
+• Etiquetas ARIA completas.
+• Contraste adecuado.
+
+10. Actividad: Como administrador quiero ver un registro de inicios y cierres de sesión para monitorear la actividad del sistema.
+
+Criterios de aceptación:
+• Guarda IP, fecha, hora y dispositivo.
+• Registra accesos exitosos y fallidos.
+
+11. Como usuario debo poder crear un curso para ser docente.
+
+• Los cursos deben tener al menos la siguiente información:
+i. Código del Curso
+ii. Nombre del Curso
+iii. Descripción del Curso
+iv. Fecha de Inicio del Curso
+v. Fecha de Fin del Curso – Este debe ser opcional, porque podría ser que el curso siempre esté disponible
+vi. Foto para distinguir al curso
+
+12. Como docente de un curso debo poder agregar secciones a un curso, como temas o subtemas.
+
+• Se deben poder agregar cualquier cantidad de subtemas para formar un árbol.
+
+13. Como docente de un curso debo poder agregar información a las secciones/temas/subtemas de un curso, esta información puede ser:
+
+• Texto
+• Documentos para leer
+• Videos para reproducir
+• Imágenes.
+• Es importante notar que una sección podría tener varias de estas cosas, por ejemplo, 2 videos y texto, o un documento con texto, o imágenes con texto y un video, etc.
+
+14. Como docente de un curso debo poder crear evaluaciones, estas solo serán 1 o más preguntas de selección única, que tendrán una fecha de inicio y de fin. Estas evaluaciones tendrán calificación, pero todas las preguntas valen igual, así que no se debe tener una ponderación, se puede calcular automáticamente con las respuestas correctas o incorrectas.
+
+15. Como docente puedo publicar un curso para que los estudiantes se puedan matricular.
+
+• Esto implica que los cursos no son visibles durante la edición, solo cuando se publican se pueden ver.
+
+16. Como docente debo poder ver la lista de estudiantes matriculados a un curso.
+17. Como docente debo poder tener alguna manera en que los estudiantes hagan consultas, por medio de mensajes y darles respuesta.
+18. Como docente debo poder ver la lista de todos los cursos que he creado, cuáles están activos y cuáles ya están terminados.
+19. Como docente debo poder clonar un curso, en cuyo caso, los materiales se copian, pero las fechas, nombre y código del curso deben cambiar.
+20. Como estudiante debo poder buscar entre los cursos publicados por otros usuarios y ver la información general.
+21. Como estudiante debo poder matricularme a un curso.
+22. Como estudiante debo poder ver la lista de cursos a los que estoy matriculado.
+23. Como estudiante debo poder ver las secciones de un curso y su contenido.
+
+24. Como estudiante debo poder realizar las evaluaciones y que el sistema me dé el resultado de la evaluación inmediatamente.
+25. Como estudiante debo poder ver el resultado de todas las evaluaciones que he hecho para un curso.
+26. Como estudiante debo poder enviar consultas a un docente para que me las conteste a través de mensajes.
+27. Como estudiante debo poder ver la lista de los otros estudiantes que están llevando el curso.
+28. Como usuario puedo hacerme amigo de otro usuario, en cuyo caso puedo ver cuáles cursos ha llevado y en cuáles es docente, pero no puedo ver la nota de ninguno.
+29. Como usuario debo poder buscar otros usuarios del sistema.
+30. Como usuario debo poder enviar mensajes a otro usuario del sistema y contestar los mensajes que me envían.
+
+El lenguaje de programación debe ser js. Se puede hacer uso de MEAN. 
+
+Se deben usar 4 bases de datos de la siguiente lista para poder completar la tarea, es importante destacar que en la documentación debe estar la justificación de por qué se decidió usar cada una y el modelaje para cada una.
+
+• Neo4j
+• MongoDB
+• Redis
+• Cassandra
+
+Para la implementación, al menos 2 de las bases de datos deben estar en la nube y 2 deben estar instaladas localmente con Docker, corriendo al menos 3 nodos pequeños.
+
+La información se debe distribuir entre las bases de datos, deben presentar el diseño de cada base de datos y qué información está guardada en cada una. Se permite duplicar datos entre distintas bases de datos si es necesario.
+
+Requerimientos No Funcionales
+
+1. El sistema debe ser simple de usar
+2. Debe guardar coherencia en el look and feel
+3. La interfaz no debe ser muy elaborada
+
+Puntos Extra
+
+1. Instalar una tercera base de datos en al menos 3 nodos funcionales (5 puntos)
+2. Llevar un Audit en alguna base de datos de todos los cambios que hacen, el timestamp, usuario, operación, etc.
+
+Noten que los puntos extra solo se evalúan si los demás puntos de la tarea están, no cuentan los puntos extra si faltan otros requerimientos.
