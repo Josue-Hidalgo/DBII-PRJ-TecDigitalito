@@ -123,10 +123,10 @@ async function doLogin() {
       currentUser = { ...data.user, token: data.token };
       onLogin();
     } else {
-      showAlert('auth-alert', data.message || 'Credenciales invÃ¡lidas.', 'danger');
+      showAlert('auth-alert', data.message || 'Credenciales inválidas.', 'danger');
     }
   } catch(e) {
-    showAlert('auth-alert', 'Error de conexiÃ³n. Verifica que el servidor estÃ© activo.', 'danger');
+    showAlert('auth-alert', 'Error de conexión. Verifica que el servidor esté activo.', 'danger');
   } finally { hideSpinner(); }
 }
 
@@ -145,19 +145,19 @@ async function doRegister() {
   if (!fullName || !username || !email || !birthDate || !password)
     return showAlert('auth-alert', 'Completa todos los campos obligatorios.', 'warning');
   if (!/^.{8,}$/.test(password) || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password))
-    return showAlert('auth-alert', 'La contraseÃ±a debe tener mÃ\xadnimo 8 caracteres e incluir mayÃºscula, minÃºscula, nÃºmero y sÃ\xadmbolo.', 'warning');
+    return showAlert('auth-alert', 'La contraseña debe tener mínimo 8 caracteres e incluir mayúscula, minúscula, número y símbolo.', 'warning');
 
   showSpinner();
   try {
     const { ok, data } = await api('POST', '/api/auth/register', { fullName, username, email, birthDate, password, photoBase64 });
     if (ok) {
-      showAlert('auth-alert', 'Â¡Cuenta creada exitosamente! Ahora inicia sesiÃ³n.', 'success');
+      showAlert('auth-alert', 'Â¡Cuenta creada exitosamente! Ahora inicia sesión.', 'success');
       switchAuthTab('login');
     } else {
       showAlert('auth-alert', data.message || 'Error al registrar. Intenta de nuevo.', 'danger');
     }
   } catch(e) {
-    showAlert('auth-alert', 'Error de conexiÃ³n.', 'danger');
+    showAlert('auth-alert', 'Error de conexión.', 'danger');
   } finally { hideSpinner(); }
 }
 
@@ -167,7 +167,7 @@ async function doRegister() {
 async function doForgotPassword() {
   clearAlert('forgot-alert');
   const email = document.getElementById('forgotEmail').value.trim();
-  if (!email) return showAlert('forgot-alert', 'Ingresa tu correo electrÃ³nico.', 'warning');
+  if (!email) return showAlert('forgot-alert', 'Ingresa tu correo electrónico.', 'warning');
 
   showSpinner();
   try {
@@ -263,7 +263,7 @@ async function saveCourse() {
   const foto = document.getElementById('coursePhoto').value.trim() || null;
 
   if (!codigo || !nombre || !descripcion || !fecha_inicio)
-    return showAlert('createCourseAlert', 'Completa los campos obligatorios: CÃ³digo, Nombre, DescripciÃ³n y Fecha de Inicio.', 'warning');
+    return showAlert('createCourseAlert', 'Completa los campos obligatorios: Código, Nombre, Descripción y Fecha de Inicio.', 'warning');
 
   showSpinner();
   try {
@@ -283,7 +283,7 @@ async function saveCourse() {
       showAlert('createCourseAlert', data.message || 'Error al crear el curso.', 'danger');
     }
   } catch(e) {
-    showAlert('createCourseAlert', 'Error de conexiÃ³n.', 'danger');
+    showAlert('createCourseAlert', 'Error de conexión.', 'danger');
   } finally { hideSpinner(); }
 }
 
@@ -425,7 +425,7 @@ async function saveSection() {
   const orden = parseInt(document.getElementById('sectionOrder').value) || 1;
   const parent_section_id = document.getElementById('sectionParentId').value || null;
 
-  if (!titulo) return showAlert('sectionModalAlert', 'El tÃ\xadtulo es obligatorio.', 'warning');
+  if (!titulo) return showAlert('sectionModalAlert', 'El título es obligatorio.', 'warning');
 
   showSpinner();
   try {
@@ -488,7 +488,7 @@ async function saveContent() {
     } else {
       showAlert('contentModalAlert', data.message || 'Error al agregar contenido.', 'danger');
     }
-  } catch(e) { showAlert('contentModalAlert', 'Error de conexiÃ³n.', 'danger'); } finally { hideSpinner(); }
+  } catch(e) { showAlert('contentModalAlert', 'Error de conexión.', 'danger'); } finally { hideSpinner(); }
 }
 
 // ---- EVALUATIONS (TEACHER) ----
@@ -556,7 +556,7 @@ async function saveEvaluation() {
   const fecha_fin = document.getElementById('evalEnd').value;
 
   if (!titulo || !fecha_inicio || !fecha_fin)
-    return showAlert('evalModalAlert', 'Completa tÃ\xadtulo y fechas.', 'warning');
+    return showAlert('evalModalAlert', 'Completa título y fechas.', 'warning');
   if (new Date(fecha_fin) <= new Date(fecha_inicio))
     return showAlert('evalModalAlert', 'La fecha de fin debe ser posterior al inicio.', 'warning');
 
@@ -585,11 +585,11 @@ async function saveEvaluation() {
     const { ok, data } = await api('POST', '/api/evaluations', { course_id: currentCourseId, titulo, descripcion, fecha_inicio, fecha_fin, preguntas });
     if (ok) {
       bootstrap.Modal.getInstance(document.getElementById('modalEvaluation')).hide();
-      showAlert('courseDetailAlert', 'Â¡EvaluaciÃ³n creada!', 'success');
+      showAlert('courseDetailAlert', 'Â¡Evaluación creada!', 'success');
     } else {
-      showAlert('evalModalAlert', data.message || 'Error al crear evaluaciÃ³n.', 'danger');
+      showAlert('evalModalAlert', data.message || 'Error al crear evaluación.', 'danger');
     }
-  } catch(e) { showAlert('evalModalAlert', 'Error de conexiÃ³n.', 'danger'); } finally { hideSpinner(); }
+  } catch(e) { showAlert('evalModalAlert', 'Error de conexión.', 'danger'); } finally { hideSpinner(); }
 }
 
 // ---- STUDENTS LIST ----
@@ -913,7 +913,7 @@ async function loadFriends() {
               <button class="btn-outline-custom" style="padding:5px 10px;font-size:11px;" onclick="openConversation('${f.user_id||f._id}','${f.nombre||f.username}')"><i class="bi bi-chat"></i></button>
             </div>
           </div>`).join('')
-        : '<div class="text-muted-custom">No tienes amigos aÃºn. Â¡Busca y agrega compaÃ±eros!</div>';
+        : '<div class="text-muted-custom">No tienes amigos aún. ¡Busca y agrega compañeros!</div>';
       document.getElementById('statFriends').textContent = data.friends.length;
     }
   } catch(e) {} finally { hideSpinner(); }
@@ -926,7 +926,7 @@ async function viewFriendCourses(friendId, friendName) {
     if (ok && data.courses) {
       document.getElementById('friendCoursesTitle').textContent = `Cursos de ${friendName}`;
       document.getElementById('friendCoursesList').innerHTML = data.courses.length
-        ? `<table class="table-custom"><thead><tr><th>Rol</th><th>CÃ³digo</th><th>Nombre</th><th>Estado</th></tr></thead>
+        ? `<table class="table-custom"><thead><tr><th>Rol</th><th>Código</th><th>Nombre</th><th>Estado</th></tr></thead>
           <tbody>${data.courses.map(c => `<tr>
             <td><span class="course-card-badge ${c.rol==='TEACHES'?'badge-published':'badge-active'}">${c.rol==='TEACHES'?'Docente':'Estudiante'}</span></td>
             <td class="mono" style="font-size:12px;">${c.codigo||'â\x80\x94'}</td><td>${c.nombre||'â\x80\x94'}</td>
@@ -1017,9 +1017,9 @@ async function changePassword() {
   if (!current_password || !new_password || !confirm)
     return showAlert('pwChangeAlert', 'Completa todos los campos.', 'warning');
   if (new_password !== confirm)
-    return showAlert('pwChangeAlert', 'Las contraseÃ±as nuevas no coinciden.', 'danger');
+    return showAlert('pwChangeAlert', 'Las contraseñas nuevas no coinciden.', 'danger');
   if (new_password.length < 8)
-    return showAlert('pwChangeAlert', 'La nueva contraseÃ±a debe tener al menos 8 caracteres.', 'warning');
+    return showAlert('pwChangeAlert', 'La nueva contraseña debe tener al menos 8 caracteres.', 'warning');
 
   showSpinner();
   try {
@@ -1028,14 +1028,14 @@ async function changePassword() {
       current_password, new_password
     });
     if (ok) {
-      showAlert('pwChangeAlert', 'Â¡ContraseÃ±a actualizada exitosamente!', 'success');
+      showAlert('pwChangeAlert', 'Â¡Contraseña actualizada exitosamente!', 'success');
       document.getElementById('pwCurrent').value = '';
       document.getElementById('pwNew').value = '';
       document.getElementById('pwConfirm').value = '';
     } else {
-      showAlert('pwChangeAlert', data.message || 'Error al cambiar contraseÃ±a.', 'danger');
+      showAlert('pwChangeAlert', data.message || 'Error al cambiar contraseña.', 'danger');
     }
-  } catch(e) { showAlert('pwChangeAlert', 'Error de conexiÃ³n.', 'danger'); } finally { hideSpinner(); }
+  } catch(e) { showAlert('pwChangeAlert', 'Error de conexión.', 'danger'); } finally { hideSpinner(); }
 }
 
 async function invalidateAllSessions() {
@@ -1046,7 +1046,7 @@ async function invalidateAllSessions() {
     const { ok, data } = await api('POST', '/api/session/invalidate-all', { user_id: currentUser._id || currentUser.user_id });
     if (ok) showAlert('sessionAlert', 'Todas las sesiones han sido cerradas.', 'success');
     else showAlert('sessionAlert', data.message || 'Error al cerrar sesiones.', 'danger');
-  } catch(e) { showAlert('sessionAlert', 'Error de conexiÃ³n.', 'danger'); } finally { hideSpinner(); }
+  } catch(e) { showAlert('sessionAlert', 'Error de conexión.', 'danger'); } finally { hideSpinner(); }
 }
 
 // ===============================================
