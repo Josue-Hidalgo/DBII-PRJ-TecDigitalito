@@ -11,45 +11,50 @@ Este es un proyecto en el que se hace una red social de usuarios que pueden publ
 
 <img width="1536" height="1024" alt="Logo" src="https://github.com/user-attachments/assets/dc419661-84d0-49bb-b74d-14910697099a" />
 
-## Instalación
+## Instalación Dependencias
 
-### Instalar Docker (Desktop) en su Máquina
+### Docker
 - [Instalar Docker Engine](https://docs.docker.com/engine/install/)
 
-### Desarrollo
-
-Iniciar el proyecto en modo desarrollo
+### Node (Powershell Admin)
+- [Download NVM](nvmnode.com/guide/download.html)
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+nvm version
+```
+- Instalar Node
+```bash
+nvm install 24.11.0
+```
+```bash
+nvm use 24.11.0
+```
+```bash
+npm ci
+```
+- Instalar Angular CLI
+
+```bash
+npm install -g @angular/cli
 ```
 
-Ver logs en tiempo real
+## Ejecución
+- En carpeta /Frontend:
 ```bash
-docker-compose -f docker-compose.dev.yml logs -f backend
-docker-compose -f docker-compose.dev.yml logs -f frontend
+npm start
 ```
 
-Detener y borrar todo
+- En carpeta /Backend:
 ```bash
-docker-compose -f docker-compose.dev.yml down
+npm run dev
+```
+O bien:
+```bash
+npm run start
 ```
 
-Reconstruir solo un servicio
+- En carperta /: 
 ```bash
-docker-compose -f docker-compose.dev.yml up --build backend
-```
-
-Entrar a un contenedor para debug
-```bash
-docker-compose -f docker-compose.dev.yml exec backend sh
-docker-compose -f docker-compose.dev.yml exec frontend sh
-```
-
-### Producción
-
-Iniciar el proyecto en modo producción
-```bash
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+docker compose up 
 ```
 
 ## Documentación
