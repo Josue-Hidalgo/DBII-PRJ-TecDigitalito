@@ -127,7 +127,7 @@
           <input type="date" class="form-control" id="regBirth"/>
         </div>
         <div class="col-12">
-          <label class="form-label">ContraseÃ±a</label>
+          <label class="form-label">Contraseña</label>
           <input type="password" class="form-control" id="regPassword" placeholder="MÃ\xadnimo 8 caracteres"/>
         </div>
         <div class="col-12">
@@ -145,11 +145,11 @@
   <div class="auth-card">
     <div class="brand">
       <div class="brand-name">Digit<span>a</span>lito</div>
-      <p class="text-muted-custom mt-2">Recuperar ContraseÃ±a</p>
+      <p class="text-muted-custom mt-2">Recuperar Contraseña</p>
     </div>
     <div id="forgot-alert"></div>
     <div class="mb-3">
-      <label class="form-label">Correo ElectrÃ³nico</label>
+      <label class="form-label">Correo Electrónico</label>
       <input type="email" class="form-control" id="forgotEmail" placeholder="tu@correo.com"/>
     </div>
     <button class="btn-primary-custom mb-3" onclick="doForgotPassword()"><i class="bi bi-envelope"></i> Enviar Enlace</button>
@@ -213,22 +213,22 @@
   <div class="page-header">
     <div>
       <div class="page-title" id="createCourseTitle">Crear Curso</div>
-      <div class="page-subtitle">Completa la informaciÃ³n del nuevo curso</div>
+      <div class="page-subtitle">Completa la información del nuevo curso</div>
     </div>
   </div>
   <div class="card-custom" style="max-width:720px;">
     <div id="createCourseAlert"></div>
     <div class="row g-3">
       <div class="col-md-4">
-        <label class="form-label">CÃ³digo del Curso *</label>
+        <label class="form-label">Código del Curso *</label>
         <input type="text" class="form-control" id="courseCode" placeholder="CS-101"/>
       </div>
       <div class="col-md-8">
         <label class="form-label">Nombre del Curso *</label>
-        <input type="text" class="form-control" id="courseName" placeholder="IntroducciÃ³n a la ProgramaciÃ³n"/>
+        <input type="text" class="form-control" id="courseName" placeholder="Introducción a la Programación"/>
       </div>
       <div class="col-12">
-        <label class="form-label">DescripciÃ³n *</label>
+        <label class="form-label">Descripción *</label>
         <textarea class="form-control" id="courseDesc" rows="3" placeholder="Describe el contenido y objetivos del curso..."></textarea>
       </div>
       <div class="col-md-6">
@@ -324,7 +324,7 @@
   <div class="page-header">
     <div>
       <div class="page-title">Explorar Cursos</div>
-      <div class="page-subtitle">Busca y matrÃ\xadculate en cursos disponibles</div>
+      <div class="page-subtitle">Busca y matricula en cursos disponibles</div>
     </div>
   </div>
   <div class="d-flex gap-2 mb-4 flex-wrap">
@@ -336,7 +336,7 @@
   </div>
   <div id="searchAlert"></div>
   <div id="searchResults" class="gap-grid grid-3">
-    <div class="text-muted-custom">Ingresa un tÃ©rmino para buscar</div>
+    <div class="text-muted-custom">Ingresa un término para buscar</div>
   </div>
 </div>
 
@@ -344,8 +344,8 @@
 <div id="page-enrolled" class="page">
   <div class="page-header">
     <div>
-      <div class="page-title">Mis MatrÃ\xadculas</div>
-      <div class="page-subtitle">Cursos en los que estÃ¡s matriculado</div>
+      <div class="page-title">Mis Matrículas</div>
+      <div class="page-subtitle">Cursos en los que estás matriculado</div>
     </div>
   </div>
   <div id="enrolledGrid" class="gap-grid grid-3">
@@ -433,7 +433,7 @@
         <div style="font-weight:700; margin-bottom:16px;">Conversaciones</div>
         <div id="conversationsList"><div class="text-muted-custom">Sin conversaciones</div></div>
         <div class="divider"></div>
-        <div style="font-weight:600; font-size:13px; margin-bottom:10px;">Nueva ConversaciÃ³n</div>
+        <div style="font-weight:600; font-size:13px; margin-bottom:10px;">Nueva Conversación</div>
         <input type="text" class="form-control mb-2" id="newMsgUserId" placeholder="ID del usuario destinatario"/>
         <button class="btn-outline-custom w-100" onclick="openConversation(document.getElementById('newMsgUserId').value)">Abrir Chat</button>
       </div>
@@ -453,7 +453,7 @@
       <div class="card-custom" id="chatPlaceholder">
         <div class="text-center py-5">
           <i class="bi bi-chat-dots" style="font-size:48px; color:var(--border);"></i>
-          <div class="text-muted-custom mt-3">Selecciona una conversaciÃ³n</div>
+          <div class="text-muted-custom mt-3">Selecciona una conversación</div>
         </div>
       </div>
     </div>
@@ -472,19 +472,19 @@
   <div class="row g-3">
     <div class="col-md-6">
       <div class="card-custom">
-        <div style="font-weight:700; margin-bottom:20px;">Cambiar ContraseÃ±a</div>
+        <div style="font-weight:700; margin-bottom:20px;">Cambiar Contraseña</div>
         <div id="pwChangeAlert"></div>
         <div class="mb-3">
-          <label class="form-label">ContraseÃ±a Actual *</label>
-          <input type="password" class="form-control" id="pwCurrent" placeholder="â¢â¢â¢â¢â¢â¢â¢â¢"/>
+          <label class="form-label">Contraseña Actual *</label>
+          <input type="password" class="form-control" id="pwCurrent" placeholder="••••••••"/>
         </div>
         <div class="mb-3">
-          <label class="form-label">Nueva ContraseÃ±a *</label>
-          <input type="password" class="form-control" id="pwNew" placeholder="MÃ\xadnimo 8 caracteres"/>
+          <label class="form-label">Nueva Contraseña *</label>
+          <input type="password" class="form-control" id="pwNew" placeholder="Mínimo 8 caracteres"/>
         </div>
         <div class="mb-3">
-          <label class="form-label">Confirmar Nueva ContraseÃ±a *</label>
-          <input type="password" class="form-control" id="pwConfirm" placeholder="Repite la nueva contraseÃ±a"/>
+          <label class="form-label">Confirmar Nueva Contraseña *</label>
+          <input type="password" class="form-control" id="pwConfirm" placeholder="Repite la nueva contraseña"/>
         </div>
         <button class="btn-primary-custom" onclick="changePassword()"><i class="bi bi-shield-check"></i> Actualizar ContraseÃ±a</button>
       </div>
@@ -518,7 +518,7 @@
 <div id="page-admin" class="page">
   <div class="page-header">
     <div>
-      <div class="page-title">AuditorÃ\xada del Sistema</div>
+      <div class="page-title">Auditoría del Sistema</div>
       <div class="page-subtitle">Registro de actividad y seguridad</div>
     </div>
   </div>
@@ -570,8 +570,8 @@
       <div class="modal-body">
         <div id="sectionModalAlert"></div>
         <input type="hidden" id="sectionParentId"/>
-        <div class="mb-3"><label class="form-label">TÃ\xadtulo *</label><input type="text" class="form-control" id="sectionTitle" placeholder="Nombre de la secciÃ³n"/></div>
-        <div class="mb-3"><label class="form-label">DescripciÃ³n</label><textarea class="form-control" id="sectionDesc" rows="2" placeholder="DescripciÃ³n opcional..."></textarea></div>
+        <div class="mb-3"><label class="form-label">Título *</label><input type="text" class="form-control" id="sectionTitle" placeholder="Nombre de la sección"/></div>
+        <div class="mb-3"><label class="form-label">Descripción</label><textarea class="form-control" id="sectionDesc" rows="2" placeholder="Descripción opcional..."></textarea></div>
         <div class="mb-3"><label class="form-label">Orden</label><input type="number" class="form-control" id="sectionOrder" value="1" min="1"/></div>
       </div>
       <div class="modal-footer">
@@ -623,12 +623,12 @@
 <div class="modal fade" id="modalEvaluation" tabindex="-1">
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title">Nueva EvaluaciÃ³n</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title">Nueva Evaluación</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
         <div id="evalModalAlert"></div>
         <div class="row g-3 mb-4">
-          <div class="col-md-8"><label class="form-label">TÃ\xadtulo *</label><input type="text" class="form-control" id="evalTitle" placeholder="EvaluaciÃ³n #1"/></div>
-          <div class="col-md-4"><label class="form-label">DescripciÃ³n</label><input type="text" class="form-control" id="evalDesc" placeholder="Instrucciones..."/></div>
+          <div class="col-md-8"><label class="form-label">Título *</label><input type="text" class="form-control" id="evalTitle" placeholder="Evaluación #1"/></div>
+          <div class="col-md-4"><label class="form-label">Descripción</label><input type="text" class="form-control" id="evalDesc" placeholder="Instrucciones..."/></div>
           <div class="col-md-6"><label class="form-label">Fecha de Inicio *</label><input type="datetime-local" class="form-control" id="evalStart"/></div>
           <div class="col-md-6"><label class="form-label">Fecha de Fin *</label><input type="datetime-local" class="form-control" id="evalEnd"/></div>
         </div>
@@ -650,7 +650,7 @@
 <div class="modal fade" id="modalTakeEval" tabindex="-1">
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title" id="takeEvalTitle">EvaluaciÃ³n</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title" id="takeEvalTitle">Evaluación</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
         <div id="takeEvalAlert"></div>
         <div id="takeEvalQuestions"></div>
@@ -670,8 +670,8 @@
       <div class="modal-header"><h5 class="modal-title">Clonar Curso</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
         <div id="cloneAlert"></div>
-        <p class="text-muted-custom mb-3">Los materiales se copiarÃ¡n. Debes cambiar el nombre, cÃ³digo y fechas.</p>
-        <div class="mb-3"><label class="form-label">Nuevo CÃ³digo *</label><input type="text" class="form-control" id="cloneCode" placeholder="CS-102"/></div>
+        <p class="text-muted-custom mb-3">Los materiales se copiarán. Debes cambiar el nombre, código y fechas.</p>
+        <div class="mb-3"><label class="form-label">Nuevo Código *</label><input type="text" class="form-control" id="cloneCode" placeholder="CS-102"/></div>
         <div class="mb-3"><label class="form-label">Nuevo Nombre *</label><input type="text" class="form-control" id="cloneName" placeholder="Nombre del nuevo curso"/></div>
         <div class="mb-3"><label class="form-label">Fecha de Inicio *</label><input type="date" class="form-control" id="cloneStart"/></div>
         <div class="mb-3"><label class="form-label">Fecha de Fin</label><input type="date" class="form-control" id="cloneEnd"/></div>
