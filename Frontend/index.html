@@ -1,0 +1,2530 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TEC Digitalito</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --surface: #111827;
+  --surface2: #1a2236;
+  --border: #1f2d45;
+  --accent: #00d4aa;
+  --accent2: #5b8dee;
+  --danger: #ff4d6d;
+  --warning: #f59e0b;
+  --text: #e2e8f0;
+  --text-muted: #64748b;
+  --text-dim: #94a3b8;
+  --font-mono: 'Space Mono', monospace;
+  --font-body: 'DM Sans', sans-serif;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ─── NOISE OVERLAY ─── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.5;
+}
+
+/* ─── SIDEBAR ─── */
+#sidebar {
+  position: fixed;
+  left: 0; top: 0; bottom: 0;
+  width: 260px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  transition: transform var(--transition);
+}
+#sidebar-logo {
+  padding: 28px 24px 20px;
+  border-bottom: 1px solid var(--border);
+}
+#sidebar-logo .logo-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--accent);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+#sidebar-logo h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.5px;
+}
+#sidebar-logo h1 span { color: var(--accent); }
+
+#sidebar-user {
+  padding: 16px 20px;
+  margin: 16px;
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  display: none;
+}
+#sidebar-user.visible { display: block; }
+#sidebar-user .user-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 14px; font-weight: 700;
+  color: var(--bg);
+  margin-right: 10px;
+}
+#sidebar-user .user-name { font-size: 14px; font-weight: 600; color: var(--text); }
+#sidebar-user .user-tag { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); }
+
+nav#main-nav { flex: 1; padding: 12px 12px; overflow-y: auto; }
+nav#main-nav .nav-section {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 12px 12px 6px;
+}
+.nav-item { margin-bottom: 2px; }
+.nav-link-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all var(--transition);
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+}
+.nav-link-btn i { font-size: 16px; width: 20px; text-align: center; }
+.nav-link-btn:hover { background: var(--surface2); color: var(--text); }
+.nav-link-btn.active { background: rgba(0,212,170,0.12); color: var(--accent); }
+.nav-link-btn.active i { color: var(--accent); }
+
+#sidebar-footer {
+  padding: 16px;
+  border-top: 1px solid var(--border);
+}
+.btn-logout {
+  width: 100%;
+  padding: 9px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--danger);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-logout:hover { background: rgba(255,77,109,0.12); border-color: var(--danger); }
+
+/* ─── MAIN CONTENT ─── */
+#main-content {
+  margin-left: 260px;
+  min-height: 100vh;
+  padding: 32px;
+}
+
+/* ─── PAGES ─── */
+.page { display: none; }
+.page.active { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ─── AUTH PAGES ─── */
+#page-auth {
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+}
+#page-auth.active { display: flex; }
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 40px;
+  position: relative;
+}
+.auth-card::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: 40px; right: 40px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius: 0 0 4px 4px;
+}
+.auth-card .brand {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.auth-card .brand-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.auth-card .brand-name {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.5px;
+}
+.auth-card .brand-name span { color: var(--accent); }
+.auth-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--surface2);
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 28px;
+}
+.auth-tab {
+  flex: 1;
+  padding: 8px;
+  text-align: center;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  color: var(--text-muted);
+  border: none;
+  background: transparent;
+}
+.auth-tab.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
+
+/* ─── FORM ELEMENTS ─── */
+.form-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 6px;
+}
+.form-control, .form-select {
+  background: var(--surface2) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text) !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 10px 14px !important;
+  font-size: 14px !important;
+  transition: border-color var(--transition) !important;
+}
+.form-control:focus, .form-select:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(0,212,170,0.12) !important;
+  outline: none !important;
+}
+.form-control::placeholder { color: var(--text-muted) !important; }
+.form-control.is-invalid { border-color: var(--danger) !important; }
+.invalid-feedback { color: var(--danger); font-size: 12px; }
+
+/* ─── BUTTONS ─── */
+.btn-primary-custom {
+  background: linear-gradient(135deg, var(--accent), #00b894);
+  color: var(--bg);
+  border: none;
+  padding: 11px 24px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all var(--transition);
+  width: 100%;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-primary-custom:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(0,212,170,0.3); }
+.btn-primary-custom:active { transform: none; }
+.btn-primary-custom:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+.btn-outline-custom {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 9px 20px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.btn-outline-custom:hover { background: rgba(0,212,170,0.1); }
+
+.btn-danger-custom {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  padding: 7px 16px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.btn-danger-custom:hover { background: rgba(255,77,109,0.12); }
+
+/* ─── PAGE HEADER ─── */
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.page-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.5px;
+}
+.page-subtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* ─── CARDS ─── */
+.card-custom {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  transition: border-color var(--transition);
+}
+.card-custom:hover { border-color: rgba(0,212,170,0.3); }
+
+.course-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: all var(--transition);
+  cursor: pointer;
+}
+.course-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.3); }
+.course-card-header {
+  height: 120px;
+  background: linear-gradient(135deg, var(--surface2), var(--border));
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+.course-card-header img { width: 100%; height: 100%; object-fit: cover; }
+.course-card-header .course-initials {
+  font-family: var(--font-mono);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--accent);
+  opacity: 0.6;
+}
+.course-card-badge {
+  position: absolute;
+  top: 10px; right: 10px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.badge-published { background: rgba(0,212,170,0.15); color: var(--accent); border: 1px solid rgba(0,212,170,0.3); }
+.badge-draft { background: rgba(245,158,11,0.15); color: var(--warning); border: 1px solid rgba(245,158,11,0.3); }
+.badge-active { background: rgba(91,141,238,0.15); color: var(--accent2); border: 1px solid rgba(91,141,238,0.3); }
+.badge-ended { background: rgba(100,116,139,0.15); color: var(--text-muted); border: 1px solid rgba(100,116,139,0.3); }
+
+.course-card-body { padding: 16px; }
+.course-card-code { font-family: var(--font-mono); font-size: 10px; color: var(--accent); letter-spacing: 1px; margin-bottom: 6px; }
+.course-card-name { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; line-height: 1.3; }
+.course-card-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* ─── STATS ROW ─── */
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex; align-items: center; gap: 16px;
+}
+.stat-icon {
+  width: 48px; height: 48px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+}
+.stat-icon.green { background: rgba(0,212,170,0.12); color: var(--accent); }
+.stat-icon.blue { background: rgba(91,141,238,0.12); color: var(--accent2); }
+.stat-icon.red { background: rgba(255,77,109,0.12); color: var(--danger); }
+.stat-icon.yellow { background: rgba(245,158,11,0.12); color: var(--warning); }
+.stat-value { font-size: 28px; font-weight: 700; color: var(--text); line-height: 1; }
+.stat-label { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+/* ─── TABLE ─── */
+.table-custom { width: 100%; border-collapse: collapse; }
+.table-custom th {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+.table-custom td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  color: var(--text-dim);
+  vertical-align: middle;
+}
+.table-custom tr:last-child td { border-bottom: none; }
+.table-custom tr:hover td { background: rgba(255,255,255,0.02); }
+
+/* ─── ALERTS ─── */
+.alert-custom {
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 16px;
+  animation: slideIn 0.3s ease;
+}
+@keyframes slideIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
+.alert-success { background: rgba(0,212,170,0.12); border: 1px solid rgba(0,212,170,0.3); color: var(--accent); }
+.alert-danger { background: rgba(255,77,109,0.12); border: 1px solid rgba(255,77,109,0.3); color: var(--danger); }
+.alert-warning { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); color: var(--warning); }
+
+/* ─── MODAL ─── */
+.modal-backdrop { background: rgba(0,0,0,0.6) !important; backdrop-filter: blur(4px); }
+.modal-content {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius) !important;
+  color: var(--text) !important;
+}
+.modal-header {
+  border-bottom: 1px solid var(--border) !important;
+  padding: 20px 24px !important;
+}
+.modal-title { font-weight: 700 !important; font-size: 16px !important; }
+.modal-body { padding: 24px !important; }
+.modal-footer { border-top: 1px solid var(--border) !important; padding: 16px 24px !important; }
+.btn-close { filter: invert(1) !important; }
+
+/* ─── LOADING SPINNER ─── */
+.spinner-overlay {
+  position: fixed; inset: 0;
+  background: rgba(10,14,26,0.7);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9998;
+  backdrop-filter: blur(4px);
+  display: none;
+}
+.spinner-overlay.visible { display: flex; }
+.spinner-ring {
+  width: 48px; height: 48px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── DIVIDER ─── */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 24px 0;
+}
+
+/* ─── SECTION TREE ─── */
+.section-item {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  margin-bottom: 8px;
+}
+.section-item.sub { margin-left: 24px; }
+.section-header { display: flex; align-items: center; justify-content: space-between; }
+.section-title { font-size: 14px; font-weight: 600; color: var(--text); }
+.section-actions { display: flex; gap: 6px; }
+
+/* ─── SEARCH BOX ─── */
+.search-box {
+  position: relative;
+  max-width: 380px;
+}
+.search-box i {
+  position: absolute;
+  left: 12px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 16px;
+}
+.search-box input { padding-left: 40px !important; }
+
+/* ─── EVALUATION FORM ─── */
+.question-block {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.option-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 8px;
+}
+.option-radio { accent-color: var(--accent); width: 18px; height: 18px; cursor: pointer; }
+
+/* ─── MESSAGES ─── */
+.message-bubble {
+  max-width: 72%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+.message-bubble.sent {
+  background: rgba(0,212,170,0.15);
+  border: 1px solid rgba(0,212,170,0.25);
+  color: var(--text);
+  margin-left: auto;
+  border-bottom-right-radius: 4px;
+}
+.message-bubble.received {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  border-bottom-left-radius: 4px;
+}
+.message-meta { font-size: 10px; font-family: var(--font-mono); color: var(--text-muted); margin-top: 4px; }
+.chat-window {
+  height: 320px;
+  overflow-y: auto;
+  padding: 16px;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── FRIEND CARD ─── */
+.friend-card {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  transition: border-color var(--transition);
+}
+.friend-card:hover { border-color: var(--accent); }
+.friend-avatar {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 16px; font-weight: 700;
+  color: var(--bg); flex-shrink: 0;
+}
+.friend-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.friend-username { font-size: 11px; font-family: var(--font-mono); color: var(--text-muted); }
+
+/* ─── HEALTH GRID ─── */
+.health-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  text-align: center;
+}
+.health-dot {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+  animation: pulse 2s ease-in-out infinite;
+}
+.health-dot.ok { background: var(--accent); }
+.health-dot.err { background: var(--danger); animation: none; }
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 768px) {
+  #sidebar { transform: translateX(-100%); }
+  #sidebar.open { transform: none; }
+  #main-content { margin-left: 0; padding: 20px 16px; }
+  .menu-toggle { display: flex !important; }
+}
+.menu-toggle {
+  display: none;
+  position: fixed;
+  top: 16px; left: 16px;
+  z-index: 200;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  width: 40px; height: 40px;
+  align-items: center; justify-content: center;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 18px;
+}
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ─── UTILS ─── */
+.gap-grid { display: grid; gap: 16px; }
+.grid-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 1100px) { .grid-4 { grid-template-columns: repeat(2, 1fr); } .grid-3 { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr; } }
+.mono { font-family: var(--font-mono); }
+.text-accent { color: var(--accent); }
+.text-muted-custom { color: var(--text-muted); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<!-- Spinner -->
+<div class="spinner-overlay" id="spinner"><div class="spinner-ring"></div></div>
+
+<!-- Mobile toggle -->
+<button class="menu-toggle" id="menuToggle"><i class="bi bi-list"></i></button>
+
+<!-- ─── SIDEBAR ─── -->
+<aside id="sidebar">
+  <div id="sidebar-logo">
+    <div class="logo-tag">TEC</div>
+    <h1>Digit<span>a</span>lito</h1>
+  </div>
+
+  <div id="sidebar-user">
+    <div class="d-flex align-items-center">
+      <div class="user-avatar" id="sidebarInitials">?</div>
+      <div>
+        <div class="user-name" id="sidebarName">Usuario</div>
+        <div class="user-tag" id="sidebarUsername">@username</div>
+      </div>
+    </div>
+  </div>
+
+  <nav id="main-nav">
+    <!-- Visible sin login -->
+    <div id="nav-guest">
+      <div class="nav-section">Acceso</div>
+      <div class="nav-item"><button class="nav-link-btn active" onclick="showPage('page-auth')"><i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión</button></div>
+    </div>
+    <!-- Visible con login -->
+    <div id="nav-user" style="display:none">
+      <div class="nav-section">General</div>
+      <div class="nav-item"><button class="nav-link-btn" onclick="showPage('page-home')"><i class="bi bi-grid-1x2"></i> Panel Principal</button></div>
+      <div class="nav-item"><button class="nav-link-btn" onclick="showPage('page-search-courses')"><i class="bi bi-search"></i> Explorar Cursos</button></div>
+      <div class="nav-section">Docente</div>
+      <div class="nav-item"><button class="nav-link-btn" onclick="showPage('page-my-courses')"><i class="bi bi-journal-text"></i> Mis Cursos</button></div>
+      <div class="nav-item"><button class="nav-link-btn" onclick="showPage('page-create-course')"><i class="bi bi-plus-circle"></i> Crear Curso</button></div>
+      <div class="nav-section">Estudiante</div>
+      <div class="nav-item"><button class="nav-link-btn" onclick="showPage('page-enrolled')"><i class="bi bi-mortarboard"></i> Mis Matrículas</button></div>
+      <div class="nav-section">Social</div>
+      <div class="nav-item"><button class="nav-link-btn" onclick="showPage('page-friends')"><i class="bi bi-people"></i> Amigos</button></div>
+      <div class="nav-item"><button class="nav-link-btn" onclick="showPage('page-messages')"><i class="bi bi-chat-dots"></i> Mensajes</button></div>
+      <div class="nav-section">Cuenta</div>
+      <div class="nav-item"><button class="nav-link-btn" onclick="showPage('page-password')"><i class="bi bi-shield-lock"></i> Contraseña</button></div>
+      <div class="nav-item"><button class="nav-link-btn" onclick="showPage('page-health')"><i class="bi bi-activity"></i> Estado BD</button></div>
+      <div id="nav-admin" style="display:none">
+        <div class="nav-section">Administración</div>
+        <div class="nav-item"><button class="nav-link-btn" onclick="showPage('page-admin')"><i class="bi bi-bar-chart-line"></i> Auditoría</button></div>
+      </div>
+    </div>
+  </nav>
+
+  <div id="sidebar-footer" style="display:none" id="footer-logout">
+    <button class="btn-logout" onclick="logout()"><i class="bi bi-box-arrow-left"></i> Cerrar Sesión</button>
+  </div>
+</aside>
+
+<!-- ─── MAIN CONTENT ─── -->
+<main id="main-content">
+
+<!-- ═══════════════════════════════════════════════
+     AUTH PAGE
+═══════════════════════════════════════════════ -->
+<div id="page-auth" class="page active" style="display:flex; min-height:100vh; align-items:center; justify-content:center; padding:0; margin-left:-260px; width:100vw;">
+  <div class="auth-card">
+    <div class="brand">
+      <div class="brand-tag">TEC</div>
+      <div class="brand-name">Digit<span>a</span>lito</div>
+      <p class="text-muted-custom mt-2">Plataforma de clases virtuales</p>
+    </div>
+
+    <div id="auth-alert"></div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Iniciar Sesión</button>
+      <button class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">Registrarse</button>
+    </div>
+
+    <!-- Login Form -->
+    <div id="form-login">
+      <div class="mb-3">
+        <label class="form-label">Usuario</label>
+        <input type="text" class="form-control" id="loginUsername" placeholder="tu_usuario"/>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Contraseña</label>
+        <input type="password" class="form-control" id="loginPassword" placeholder="••••••••"/>
+      </div>
+      <div class="mb-3 d-flex align-items-center gap-2">
+        <input type="checkbox" id="rememberMe" style="accent-color:var(--accent); width:16px; height:16px;"/>
+        <label for="rememberMe" style="font-size:13px; color:var(--text-dim)">Recordarme</label>
+      </div>
+      <button class="btn-primary-custom" onclick="doLogin()"><i class="bi bi-box-arrow-in-right"></i> Ingresar</button>
+      <div class="text-center mt-3">
+        <a href="#" style="font-size:12px; color:var(--accent); text-decoration:none;" onclick="showPage('page-forgot')">¿Olvidaste tu contraseña?</a>
+      </div>
+    </div>
+
+    <!-- Register Form -->
+    <div id="form-register" style="display:none">
+      <div class="row g-2 mb-3">
+        <div class="col-12">
+          <label class="form-label">Nombre Completo</label>
+          <input type="text" class="form-control" id="regNombre" placeholder="Juan Pérez"/>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Usuario</label>
+          <input type="text" class="form-control" id="regUsername" placeholder="juan_perez"/>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Correo</label>
+          <input type="email" class="form-control" id="regEmail" placeholder="juan@tec.ac.cr"/>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Fecha de Nacimiento</label>
+          <input type="date" class="form-control" id="regBirth"/>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Contraseña</label>
+          <input type="password" class="form-control" id="regPassword" placeholder="Mínimo 8 caracteres"/>
+        </div>
+        <div class="col-12">
+          <label class="form-label">URL Avatar (opcional)</label>
+          <input type="text" class="form-control" id="regAvatar" placeholder="https://..."/>
+        </div>
+      </div>
+      <button class="btn-primary-custom" onclick="doRegister()"><i class="bi bi-person-plus"></i> Crear Cuenta</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     FORGOT PASSWORD PAGE
+═══════════════════════════════════════════════ -->
+<div id="page-forgot" class="page" style="display:none; min-height:100vh; align-items:center; justify-content:center; padding:0; margin-left:-260px; width:100vw;">
+  <div class="auth-card">
+    <div class="brand">
+      <div class="brand-name">Digit<span>a</span>lito</div>
+      <p class="text-muted-custom mt-2">Recuperar Contraseña</p>
+    </div>
+    <div id="forgot-alert"></div>
+    <div class="mb-3">
+      <label class="form-label">Correo Electrónico</label>
+      <input type="email" class="form-control" id="forgotEmail" placeholder="tu@correo.com"/>
+    </div>
+    <button class="btn-primary-custom mb-3" onclick="doForgotPassword()"><i class="bi bi-envelope"></i> Enviar Enlace</button>
+    <button class="btn-outline-custom w-100" onclick="showPage('page-auth')"><i class="bi bi-arrow-left"></i> Volver</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     HOME / DASHBOARD
+═══════════════════════════════════════════════ -->
+<div id="page-home" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Panel Principal</div>
+      <div class="page-subtitle">Bienvenido de vuelta, <span id="homeWelcomeName" class="text-accent">usuario</span></div>
+    </div>
+    <button class="btn-outline-custom" onclick="showPage('page-create-course')"><i class="bi bi-plus-lg"></i> Nuevo Curso</button>
+  </div>
+
+  <div class="gap-grid grid-4 mb-4">
+    <div class="stat-card">
+      <div class="stat-icon green"><i class="bi bi-journal-text"></i></div>
+      <div><div class="stat-value" id="statCourses">0</div><div class="stat-label">Cursos creados</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon blue"><i class="bi bi-mortarboard"></i></div>
+      <div><div class="stat-value" id="statEnrolled">0</div><div class="stat-label">Matrículas activas</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon yellow"><i class="bi bi-people"></i></div>
+      <div><div class="stat-value" id="statFriends">0</div><div class="stat-label">Amigos</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon red"><i class="bi bi-chat-dots"></i></div>
+      <div><div class="stat-value" id="statMessages">0</div><div class="stat-label">Mensajes</div></div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="card-custom">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div style="font-weight:700; font-size:15px;">Mis Cursos Recientes</div>
+          <button class="btn-outline-custom" onclick="showPage('page-my-courses')" style="padding:6px 14px; font-size:12px;">Ver todos</button>
+        </div>
+        <div id="homeRecentCourses"><div class="text-muted-custom">Cargando...</div></div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card-custom">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div style="font-weight:700; font-size:15px;">Cursos Matriculados</div>
+          <button class="btn-outline-custom" onclick="showPage('page-enrolled')" style="padding:6px 14px; font-size:12px;">Ver todos</button>
+        </div>
+        <div id="homeEnrolledCourses"><div class="text-muted-custom">Cargando...</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     CREATE / EDIT COURSE
+═══════════════════════════════════════════════ -->
+<div id="page-create-course" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title" id="createCourseTitle">Crear Curso</div>
+      <div class="page-subtitle">Completa la información del nuevo curso</div>
+    </div>
+  </div>
+  <div class="card-custom" style="max-width:720px;">
+    <div id="createCourseAlert"></div>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label">Código del Curso *</label>
+        <input type="text" class="form-control" id="courseCode" placeholder="CS-101"/>
+      </div>
+      <div class="col-md-8">
+        <label class="form-label">Nombre del Curso *</label>
+        <input type="text" class="form-control" id="courseName" placeholder="Introducción a la Programación"/>
+      </div>
+      <div class="col-12">
+        <label class="form-label">Descripción *</label>
+        <textarea class="form-control" id="courseDesc" rows="3" placeholder="Describe el contenido y objetivos del curso..."></textarea>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Fecha de Inicio *</label>
+        <input type="date" class="form-control" id="courseStart"/>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Fecha de Fin <span class="text-muted-custom">(opcional)</span></label>
+        <input type="date" class="form-control" id="courseEnd"/>
+      </div>
+      <div class="col-12">
+        <label class="form-label">URL de Foto del Curso</label>
+        <input type="text" class="form-control" id="coursePhoto" placeholder="https://..."/>
+      </div>
+    </div>
+    <div class="mt-4 d-flex gap-2">
+      <button class="btn-primary-custom" style="width:auto; padding:10px 28px;" onclick="saveCourse()"><i class="bi bi-check-lg"></i> Guardar Curso</button>
+      <button class="btn-outline-custom" onclick="showPage('page-my-courses')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     MY COURSES (TEACHER)
+═══════════════════════════════════════════════ -->
+<div id="page-my-courses" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Mis Cursos</div>
+      <div class="page-subtitle">Cursos que has creado como docente</div>
+    </div>
+    <button class="btn-primary-custom" style="width:auto;" onclick="showPage('page-create-course')"><i class="bi bi-plus-lg"></i> Nuevo Curso</button>
+  </div>
+  <div id="myCoursesAlert"></div>
+  <div id="myCoursesGrid" class="gap-grid grid-3">
+    <div class="text-muted-custom">Cargando cursos...</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     COURSE DETAIL (TEACHER)
+═══════════════════════════════════════════════ -->
+<div id="page-course-detail" class="page">
+  <div class="page-header">
+    <div>
+      <div style="font-family:var(--font-mono); font-size:11px; color:var(--accent); letter-spacing:1px;" id="detailCode">CS-101</div>
+      <div class="page-title" id="detailName">Nombre del Curso</div>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <button class="btn-outline-custom" id="btnPublish" onclick="publishCourse()"><i class="bi bi-send"></i> Publicar</button>
+      <button class="btn-outline-custom" onclick="showCloneModal()"><i class="bi bi-files"></i> Clonar</button>
+      <button class="btn-outline-custom" onclick="showPage('page-my-courses')"><i class="bi bi-arrow-left"></i> Volver</button>
+    </div>
+  </div>
+
+  <div id="courseDetailAlert"></div>
+
+  <!-- Tabs -->
+  <div class="d-flex gap-1 mb-4" style="border-bottom:1px solid var(--border);">
+    <button class="nav-link-btn active" id="dtab-sections" onclick="switchDetailTab('sections')" style="width:auto; border-radius:var(--radius-sm) var(--radius-sm) 0 0;">Secciones</button>
+    <button class="nav-link-btn" id="dtab-evaluations" onclick="switchDetailTab('evaluations')" style="width:auto; border-radius:var(--radius-sm) var(--radius-sm) 0 0;">Evaluaciones</button>
+    <button class="nav-link-btn" id="dtab-students" onclick="switchDetailTab('students')" style="width:auto; border-radius:var(--radius-sm) var(--radius-sm) 0 0;">Estudiantes</button>
+    <button class="nav-link-btn" id="dtab-messages" onclick="switchDetailTab('messages')" style="width:auto; border-radius:var(--radius-sm) var(--radius-sm) 0 0;">Consultas</button>
+  </div>
+
+  <!-- Sections Tab -->
+  <div id="detail-tab-sections">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div style="font-weight:600;">Estructura del Curso</div>
+      <button class="btn-outline-custom" onclick="showAddSectionModal(null)"><i class="bi bi-plus"></i> Nueva Sección</button>
+    </div>
+    <div id="sectionsList"><div class="text-muted-custom">Sin secciones aún</div></div>
+  </div>
+
+  <!-- Evaluations Tab -->
+  <div id="detail-tab-evaluations" style="display:none">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div style="font-weight:600;">Evaluaciones</div>
+      <button class="btn-outline-custom" onclick="showAddEvaluationModal()"><i class="bi bi-plus"></i> Nueva Evaluación</button>
+    </div>
+    <div id="evalList"><div class="text-muted-custom">Sin evaluaciones</div></div>
+  </div>
+
+  <!-- Students Tab -->
+  <div id="detail-tab-students" style="display:none">
+    <div id="studentsList"><div class="text-muted-custom">Cargando...</div></div>
+  </div>
+
+  <!-- Messages Tab -->
+  <div id="detail-tab-messages" style="display:none">
+    <div id="courseThreadsList"><div class="text-muted-custom">Sin consultas</div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     SEARCH COURSES (STUDENT)
+═══════════════════════════════════════════════ -->
+<div id="page-search-courses" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Explorar Cursos</div>
+      <div class="page-subtitle">Busca y matricúlate en cursos disponibles</div>
+    </div>
+  </div>
+  <div class="d-flex gap-2 mb-4 flex-wrap">
+    <div class="search-box flex-grow-1">
+      <i class="bi bi-search"></i>
+      <input type="text" class="form-control" id="searchQuery" placeholder="Buscar cursos..." onkeyup="if(event.key==='Enter') searchCourses()"/>
+    </div>
+    <button class="btn-primary-custom" style="width:auto;" onclick="searchCourses()"><i class="bi bi-search"></i> Buscar</button>
+  </div>
+  <div id="searchAlert"></div>
+  <div id="searchResults" class="gap-grid grid-3">
+    <div class="text-muted-custom">Ingresa un término para buscar</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     ENROLLED COURSES (STUDENT)
+═══════════════════════════════════════════════ -->
+<div id="page-enrolled" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Mis Matrículas</div>
+      <div class="page-subtitle">Cursos en los que estás matriculado</div>
+    </div>
+  </div>
+  <div id="enrolledGrid" class="gap-grid grid-3">
+    <div class="text-muted-custom">Cargando...</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     STUDENT COURSE VIEW
+═══════════════════════════════════════════════ -->
+<div id="page-student-course" class="page">
+  <div class="page-header">
+    <div>
+      <div style="font-family:var(--font-mono); font-size:11px; color:var(--accent); letter-spacing:1px;" id="studentDetailCode">CS-101</div>
+      <div class="page-title" id="studentDetailName">Nombre del Curso</div>
+    </div>
+    <button class="btn-outline-custom" onclick="showPage('page-enrolled')"><i class="bi bi-arrow-left"></i> Volver</button>
+  </div>
+
+  <div class="d-flex gap-1 mb-4" style="border-bottom:1px solid var(--border);">
+    <button class="nav-link-btn active" id="stab-content" onclick="switchStudentTab('content')" style="width:auto; border-radius:var(--radius-sm) var(--radius-sm) 0 0;">Contenido</button>
+    <button class="nav-link-btn" id="stab-evaluations" onclick="switchStudentTab('evaluations')" style="width:auto; border-radius:var(--radius-sm) var(--radius-sm) 0 0;">Evaluaciones</button>
+    <button class="nav-link-btn" id="stab-classmates" onclick="switchStudentTab('classmates')" style="width:auto; border-radius:var(--radius-sm) var(--radius-sm) 0 0;">Compañeros</button>
+    <button class="nav-link-btn" id="stab-queries" onclick="switchStudentTab('queries')" style="width:auto; border-radius:var(--radius-sm) var(--radius-sm) 0 0;">Consultas</button>
+  </div>
+
+  <div id="student-tab-content">
+    <div id="studentSections"><div class="text-muted-custom">Cargando contenido...</div></div>
+  </div>
+  <div id="student-tab-evaluations" style="display:none">
+    <div id="studentEvals"><div class="text-muted-custom">Sin evaluaciones disponibles</div></div>
+  </div>
+  <div id="student-tab-classmates" style="display:none">
+    <div id="classmatesList"><div class="text-muted-custom">Cargando...</div></div>
+  </div>
+  <div id="student-tab-queries" style="display:none">
+    <div id="queryThreadsList"><div class="text-muted-custom">Sin consultas</div></div>
+    <div class="card-custom mt-3">
+      <div style="font-weight:600; margin-bottom:12px;">Nueva Consulta</div>
+      <textarea class="form-control mb-2" id="newQueryText" rows="3" placeholder="Escribe tu consulta al docente..."></textarea>
+      <button class="btn-primary-custom" style="width:auto;" onclick="sendQuery()"><i class="bi bi-send"></i> Enviar Consulta</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     FRIENDS & SOCIAL
+═══════════════════════════════════════════════ -->
+<div id="page-friends" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Amigos</div>
+      <div class="page-subtitle">Gestiona tus conexiones en la plataforma</div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-md-5">
+      <div class="card-custom">
+        <div style="font-weight:700; margin-bottom:16px;">Buscar Usuarios</div>
+        <div class="d-flex gap-2 mb-3">
+          <input type="text" class="form-control" id="searchUserQuery" placeholder="Buscar por nombre o usuario..." onkeyup="if(event.key==='Enter') searchUsers()"/>
+          <button class="btn-outline-custom" onclick="searchUsers()"><i class="bi bi-search"></i></button>
+        </div>
+        <div id="userSearchResults"></div>
+      </div>
+    </div>
+    <div class="col-md-7">
+      <div class="card-custom">
+        <div style="font-weight:700; margin-bottom:16px;">Mis Amigos</div>
+        <div id="friendsList"><div class="text-muted-custom">Cargando amigos...</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     DIRECT MESSAGES
+═══════════════════════════════════════════════ -->
+<div id="page-messages" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Mensajes</div>
+      <div class="page-subtitle">Conversaciones directas con otros usuarios</div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-md-4">
+      <div class="card-custom">
+        <div style="font-weight:700; margin-bottom:16px;">Conversaciones</div>
+        <div id="conversationsList"><div class="text-muted-custom">Sin conversaciones</div></div>
+        <div class="divider"></div>
+        <div style="font-weight:600; font-size:13px; margin-bottom:10px;">Nueva Conversación</div>
+        <input type="text" class="form-control mb-2" id="newMsgUserId" placeholder="ID del usuario destinatario"/>
+        <button class="btn-outline-custom w-100" onclick="openConversation(document.getElementById('newMsgUserId').value)">Abrir Chat</button>
+      </div>
+    </div>
+    <div class="col-md-8">
+      <div class="card-custom" id="chatPanel" style="display:none;">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <div class="friend-avatar" id="chatAvatarInitial" style="width:36px;height:36px;font-size:14px;">?</div>
+          <div><div style="font-weight:600;" id="chatWithName">Usuario</div><div style="font-size:11px;color:var(--text-muted);" id="chatWithId"></div></div>
+        </div>
+        <div class="chat-window" id="chatMessages"></div>
+        <div class="d-flex gap-2">
+          <input type="text" class="form-control" id="msgInput" placeholder="Escribe un mensaje..." onkeyup="if(event.key==='Enter') sendDirectMessage()"/>
+          <button class="btn-primary-custom" style="width:auto; padding:10px 16px;" onclick="sendDirectMessage()"><i class="bi bi-send"></i></button>
+        </div>
+      </div>
+      <div class="card-custom" id="chatPlaceholder">
+        <div class="text-center py-5">
+          <i class="bi bi-chat-dots" style="font-size:48px; color:var(--border);"></i>
+          <div class="text-muted-custom mt-3">Selecciona una conversación</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PASSWORD CHANGE
+═══════════════════════════════════════════════ -->
+<div id="page-password" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Seguridad</div>
+      <div class="page-subtitle">Gestiona la seguridad de tu cuenta</div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="card-custom">
+        <div style="font-weight:700; margin-bottom:20px;">Cambiar Contraseña</div>
+        <div id="pwChangeAlert"></div>
+        <div class="mb-3">
+          <label class="form-label">Contraseña Actual *</label>
+          <input type="password" class="form-control" id="pwCurrent" placeholder="••••••••"/>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Nueva Contraseña *</label>
+          <input type="password" class="form-control" id="pwNew" placeholder="Mínimo 8 caracteres"/>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Confirmar Nueva Contraseña *</label>
+          <input type="password" class="form-control" id="pwConfirm" placeholder="Repite la nueva contraseña"/>
+        </div>
+        <button class="btn-primary-custom" onclick="changePassword()"><i class="bi bi-shield-check"></i> Actualizar Contraseña</button>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card-custom">
+        <div style="font-weight:700; margin-bottom:20px;">Sesiones Activas</div>
+        <p class="text-muted-custom mb-3">Cierra todas las sesiones activas en otros dispositivos.</p>
+        <div id="sessionAlert"></div>
+        <button class="btn-danger-custom" onclick="invalidateAllSessions()" style="padding:10px 20px; font-size:13px;"><i class="bi bi-shield-x"></i> Cerrar Todas las Sesiones</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     DB HEALTH
+═══════════════════════════════════════════════ -->
+<div id="page-health" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Estado de Bases de Datos</div>
+      <div class="page-subtitle">Monitor de salud del sistema</div>
+    </div>
+    <button class="btn-outline-custom" onclick="loadHealthCheck()"><i class="bi bi-arrow-clockwise"></i> Actualizar</button>
+  </div>
+  <div id="healthGrid" class="gap-grid grid-4">
+    <div class="text-muted-custom">Verificando conexiones...</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     ADMIN AUDIT
+═══════════════════════════════════════════════ -->
+<div id="page-admin" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Auditoría del Sistema</div>
+      <div class="page-subtitle">Registro de actividad y seguridad</div>
+    </div>
+  </div>
+
+  <div class="d-flex gap-1 mb-4" style="border-bottom:1px solid var(--border);">
+    <button class="nav-link-btn active" id="atab-activity" onclick="switchAdminTab('activity')" style="width:auto; border-radius:var(--radius-sm) var(--radius-sm) 0 0;">Actividad por Usuario</button>
+    <button class="nav-link-btn" id="atab-security" onclick="switchAdminTab('security')" style="width:auto; border-radius:var(--radius-sm) var(--radius-sm) 0 0;">Eventos de Seguridad</button>
+    <button class="nav-link-btn" id="atab-audit" onclick="switchAdminTab('audit')" style="width:auto; border-radius:var(--radius-sm) var(--radius-sm) 0 0;">Audit Trail</button>
+    <button class="nav-link-btn" id="atab-logins" onclick="switchAdminTab('logins')" style="width:auto; border-radius:var(--radius-sm) var(--radius-sm) 0 0;">Login Attempts</button>
+  </div>
+
+  <div id="admin-tab-activity">
+    <div class="d-flex gap-2 mb-3">
+      <input type="text" class="form-control" id="adminUserId" placeholder="User ID" style="max-width:300px;"/>
+      <button class="btn-outline-custom" onclick="loadUserActivity()">Cargar</button>
+    </div>
+    <div id="activityTable"></div>
+  </div>
+  <div id="admin-tab-security" style="display:none">
+    <button class="btn-outline-custom mb-3" onclick="loadSecurityEvents()"><i class="bi bi-arrow-clockwise"></i> Cargar Eventos</button>
+    <div id="securityTable"></div>
+  </div>
+  <div id="admin-tab-audit" style="display:none">
+    <div class="d-flex gap-2 mb-3">
+      <input type="text" class="form-control" id="auditTable" placeholder="Nombre tabla (ej: login_attempts_by_user)" style="max-width:340px;"/>
+      <button class="btn-outline-custom" onclick="loadAuditTrail()">Cargar</button>
+    </div>
+    <div id="auditTrailTable"></div>
+  </div>
+  <div id="admin-tab-logins" style="display:none">
+    <div class="d-flex gap-2 mb-3">
+      <input type="text" class="form-control" id="loginAttemptUserId" placeholder="User ID o IP" style="max-width:300px;"/>
+      <button class="btn-outline-custom" onclick="loadLoginAttempts()">Por Usuario</button>
+      <button class="btn-outline-custom" onclick="loadLoginAttemptsByIp()">Por IP</button>
+    </div>
+    <div id="loginAttemptsTable"></div>
+  </div>
+</div>
+
+</main>
+
+<!-- ═══════════════════════════════════════════════
+     MODALS
+═══════════════════════════════════════════════ -->
+
+<!-- Add Section Modal -->
+<div class="modal fade" id="modalSection" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Nueva Sección</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div id="sectionModalAlert"></div>
+        <input type="hidden" id="sectionParentId"/>
+        <div class="mb-3"><label class="form-label">Título *</label><input type="text" class="form-control" id="sectionTitle" placeholder="Nombre de la sección"/></div>
+        <div class="mb-3"><label class="form-label">Descripción</label><textarea class="form-control" id="sectionDesc" rows="2" placeholder="Descripción opcional..."></textarea></div>
+        <div class="mb-3"><label class="form-label">Orden</label><input type="number" class="form-control" id="sectionOrder" value="1" min="1"/></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-outline-custom" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn-primary-custom" style="width:auto; padding:9px 20px;" onclick="saveSection()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Content Modal -->
+<div class="modal fade" id="modalContent" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Agregar Contenido</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div id="contentModalAlert"></div>
+        <input type="hidden" id="contentSectionId"/>
+        <div class="mb-3">
+          <label class="form-label">Tipo de Contenido *</label>
+          <select class="form-select" id="contentType" onchange="toggleContentFields()">
+            <option value="texto">Texto</option>
+            <option value="documento">Documento</option>
+            <option value="video">Video</option>
+            <option value="imagen">Imagen</option>
+          </select>
+        </div>
+        <div id="textContent">
+          <label class="form-label">Contenido de Texto</label>
+          <textarea class="form-control" id="contentText" rows="5" placeholder="Escribe el contenido aquí..."></textarea>
+        </div>
+        <div id="urlContent" style="display:none">
+          <div class="mb-3"><label class="form-label">URL del Recurso *</label><input type="text" class="form-control" id="contentUrl" placeholder="https://..."/></div>
+          <div class="mb-3"><label class="form-label">Nombre del Archivo</label><input type="text" class="form-control" id="contentFilename" placeholder="archivo.pdf"/></div>
+          <div id="videoDuration" style="display:none"><label class="form-label">Duración (segundos)</label><input type="number" class="form-control" id="contentDuration" min="0"/></div>
+          <div class="mb-3"><label class="form-label">MIME Type</label><input type="text" class="form-control" id="contentMime" placeholder="application/pdf, video/mp4, image/png..."/></div>
+        </div>
+        <div class="mt-3"><label class="form-label">Orden</label><input type="number" class="form-control" id="contentOrder" value="1" min="1"/></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-outline-custom" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn-primary-custom" style="width:auto; padding:9px 20px;" onclick="saveContent()">Agregar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Evaluation Modal -->
+<div class="modal fade" id="modalEvaluation" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Nueva Evaluación</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div id="evalModalAlert"></div>
+        <div class="row g-3 mb-4">
+          <div class="col-md-8"><label class="form-label">Título *</label><input type="text" class="form-control" id="evalTitle" placeholder="Evaluación #1"/></div>
+          <div class="col-md-4"><label class="form-label">Descripción</label><input type="text" class="form-control" id="evalDesc" placeholder="Instrucciones..."/></div>
+          <div class="col-md-6"><label class="form-label">Fecha de Inicio *</label><input type="datetime-local" class="form-control" id="evalStart"/></div>
+          <div class="col-md-6"><label class="form-label">Fecha de Fin *</label><input type="datetime-local" class="form-control" id="evalEnd"/></div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div style="font-weight:700;">Preguntas</div>
+          <button class="btn-outline-custom" onclick="addQuestion()"><i class="bi bi-plus"></i> Agregar Pregunta</button>
+        </div>
+        <div id="questionsContainer"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-outline-custom" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn-primary-custom" style="width:auto; padding:9px 20px;" onclick="saveEvaluation()">Crear Evaluación</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Take Evaluation Modal -->
+<div class="modal fade" id="modalTakeEval" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title" id="takeEvalTitle">Evaluación</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div id="takeEvalAlert"></div>
+        <div id="takeEvalQuestions"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-outline-custom" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn-primary-custom" style="width:auto; padding:9px 20px;" onclick="submitEval()">Entregar Evaluación</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Clone Course Modal -->
+<div class="modal fade" id="modalClone" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Clonar Curso</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div id="cloneAlert"></div>
+        <p class="text-muted-custom mb-3">Los materiales se copiarán. Debes cambiar el nombre, código y fechas.</p>
+        <div class="mb-3"><label class="form-label">Nuevo Código *</label><input type="text" class="form-control" id="cloneCode" placeholder="CS-102"/></div>
+        <div class="mb-3"><label class="form-label">Nuevo Nombre *</label><input type="text" class="form-control" id="cloneName" placeholder="Nombre del nuevo curso"/></div>
+        <div class="mb-3"><label class="form-label">Fecha de Inicio *</label><input type="date" class="form-control" id="cloneStart"/></div>
+        <div class="mb-3"><label class="form-label">Fecha de Fin</label><input type="date" class="form-control" id="cloneEnd"/></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-outline-custom" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn-primary-custom" style="width:auto; padding:9px 20px;" onclick="doClone()">Clonar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Friend Courses Modal -->
+<div class="modal fade" id="modalFriendCourses" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title" id="friendCoursesTitle">Cursos de Amigo</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body"><div id="friendCoursesList"></div></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ══════════════════════════════════════════
+//  CONFIGURATION
+// ══════════════════════════════════════════
+const API = 'http://localhost:3000'; // Change if backend runs on different port/host
+
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+let currentUser = null;
+let currentCourseId = null;
+let currentChatUserId = null;
+let currentEvalId = null;
+let questionsCount = 0;
+let currentStudentCourseId = null;
+
+// ══════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════
+function showSpinner() { document.getElementById('spinner').classList.add('visible'); }
+function hideSpinner() { document.getElementById('spinner').classList.remove('visible'); }
+
+function showAlert(containerId, msg, type = 'danger') {
+  const icons = { danger: 'bi-exclamation-triangle', success: 'bi-check-circle', warning: 'bi-exclamation-circle' };
+  document.getElementById(containerId).innerHTML = `
+    <div class="alert-custom alert-${type}">
+      <i class="bi ${icons[type]}"></i> ${msg}
+    </div>`;
+}
+function clearAlert(id) { const el = document.getElementById(id); if(el) el.innerHTML = ''; }
+
+async function api(method, path, body, token) {
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json' }
+  };
+  const t = token || (currentUser && currentUser.token);
+  if (t) opts.headers['Authorization'] = `Bearer ${t}`;
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(API + path, opts);
+  let data;
+  try { data = await res.json(); } catch(e) { data = {}; }
+  return { ok: res.ok, status: res.status, data };
+}
+
+function getInitials(name) {
+  if (!name) return '?';
+  return name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+}
+
+function formatDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('es-CR', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+// ══════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => {
+    p.classList.remove('active');
+    p.style.display = 'none';
+  });
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  // Auth/forgot pages need special flex layout
+  if (id === 'page-auth' || id === 'page-forgot') {
+    el.style.display = 'flex';
+    document.getElementById('sidebar').style.display = 'none';
+    document.getElementById('main-content').style.marginLeft = '0';
+    document.getElementById('main-content').style.padding = '0';
+  } else {
+    el.style.display = 'block';
+    if (currentUser) {
+      document.getElementById('sidebar').style.display = 'flex';
+      document.getElementById('main-content').style.marginLeft = '260px';
+      document.getElementById('main-content').style.padding = '32px';
+    }
+  }
+  el.classList.add('active');
+
+  // Highlight nav
+  document.querySelectorAll('.nav-link-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.nav-link-btn').forEach(b => {
+    if (b.getAttribute('onclick') && b.getAttribute('onclick').includes(id)) b.classList.add('active');
+  });
+
+  // Trigger load functions
+  if (id === 'page-home') loadHome();
+  if (id === 'page-my-courses') loadMyCourses();
+  if (id === 'page-enrolled') loadEnrolledCourses();
+  if (id === 'page-friends') { loadFriends(); }
+  if (id === 'page-messages') loadConversations();
+  if (id === 'page-health') loadHealthCheck();
+}
+
+// ══════════════════════════════════════════
+//  AUTH — TAB SWITCH
+// ══════════════════════════════════════════
+function switchAuthTab(tab) {
+  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+  document.getElementById('form-login').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('form-register').style.display = tab === 'register' ? 'block' : 'none';
+  clearAlert('auth-alert');
+}
+
+// ══════════════════════════════════════════
+//  AUTH — LOGIN
+// ══════════════════════════════════════════
+async function doLogin() {
+  clearAlert('auth-alert');
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const rememberMe = document.getElementById('rememberMe').checked;
+
+  if (!username || !password) return showAlert('auth-alert', 'Completa todos los campos.', 'warning');
+
+  showSpinner();
+  try {
+    const { ok, data } = await api('POST', '/api/auth/login', { username, password, rememberMe });
+    if (ok) {
+      currentUser = { ...data.user, token: data.token };
+      onLogin();
+    } else {
+      showAlert('auth-alert', data.message || 'Credenciales inválidas.', 'danger');
+    }
+  } catch(e) {
+    showAlert('auth-alert', 'Error de conexión. Verifica que el servidor esté activo.', 'danger');
+  } finally { hideSpinner(); }
+}
+
+// ══════════════════════════════════════════
+//  AUTH — REGISTER
+// ══════════════════════════════════════════
+async function doRegister() {
+  clearAlert('auth-alert');
+  const fullName = document.getElementById('regNombre').value.trim();
+  const username = document.getElementById('regUsername').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const birthDate = document.getElementById('regBirth').value;
+  const password = document.getElementById('regPassword').value;
+  const photoBase64 = document.getElementById('regAvatar').value.trim();
+
+  if (!fullName || !username || !email || !birthDate || !password)
+    return showAlert('auth-alert', 'Completa todos los campos obligatorios.', 'warning');
+  if (!/^.{8,}$/.test(password) || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password))
+    return showAlert('auth-alert', 'La contraseña debe tener mínimo 8 caracteres e incluir mayúscula, minúscula, número y símbolo.', 'warning');
+
+  showSpinner();
+  try {
+    const { ok, data } = await api('POST', '/api/auth/register', { fullName, username, email, birthDate, password, photoBase64 });
+    if (ok) {
+      showAlert('auth-alert', '¡Cuenta creada exitosamente! Ahora inicia sesión.', 'success');
+      switchAuthTab('login');
+    } else {
+      showAlert('auth-alert', data.message || 'Error al registrar. Intenta de nuevo.', 'danger');
+    }
+  } catch(e) {
+    showAlert('auth-alert', 'Error de conexión.', 'danger');
+  } finally { hideSpinner(); }
+}
+
+// ══════════════════════════════════════════
+//  AUTH — FORGOT PASSWORD
+// ══════════════════════════════════════════
+async function doForgotPassword() {
+  clearAlert('forgot-alert');
+  const email = document.getElementById('forgotEmail').value.trim();
+  if (!email) return showAlert('forgot-alert', 'Ingresa tu correo electrónico.', 'warning');
+
+  showSpinner();
+  try {
+    const { ok, data } = await api('POST', '/api/password/forgot', { email });
+    if (ok) {
+      showAlert('forgot-alert', 'Se ha enviado un enlace de recuperación a tu correo.', 'success');
+    } else {
+      showAlert('forgot-alert', data.message || 'Error al enviar el correo.', 'danger');
+    }
+  } catch(e) {
+    showAlert('forgot-alert', 'Error de conexión.', 'danger');
+  } finally { hideSpinner(); }
+}
+
+// ══════════════════════════════════════════
+//  ON LOGIN
+// ══════════════════════════════════════════
+function onLogin() {
+  const u = currentUser;
+  document.getElementById('sidebarInitials').textContent = getInitials(u.nombre_completo || u.username);
+  document.getElementById('sidebarName').textContent = u.nombre_completo || u.username;
+  document.getElementById('sidebarUsername').textContent = '@' + u.username;
+  document.getElementById('sidebar-user').classList.add('visible');
+  document.getElementById('nav-guest').style.display = 'none';
+  document.getElementById('nav-user').style.display = 'block';
+  document.getElementById('sidebar-footer').style.display = 'block';
+
+  showPage('page-home');
+}
+
+// ══════════════════════════════════════════
+//  LOGOUT
+// ══════════════════════════════════════════
+async function logout() {
+  try {
+    await api('POST', '/api/session/logout', {});
+  } catch(e) {}
+  currentUser = null;
+  document.getElementById('sidebar-user').classList.remove('visible');
+  document.getElementById('nav-guest').style.display = 'block';
+  document.getElementById('nav-user').style.display = 'none';
+  document.getElementById('sidebar-footer').style.display = 'none';
+  showPage('page-auth');
+}
+
+// ══════════════════════════════════════════
+//  HOME
+// ══════════════════════════════════════════
+async function loadHome() {
+  if (!currentUser) return;
+  document.getElementById('homeWelcomeName').textContent = currentUser.nombre_completo || currentUser.username;
+
+  // Load teacher courses count
+  try {
+    const { ok, data } = await api('GET', `/api/courses/teacher/${currentUser._id || currentUser.user_id}`);
+    if (ok && data.courses) {
+      document.getElementById('statCourses').textContent = data.courses.length;
+      const html = data.courses.slice(0,3).map(c => `
+        <div class="d-flex align-items-center gap-3 py-2" style="border-bottom:1px solid var(--border);">
+          <div style="width:36px;height:36px;background:var(--surface2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:12px;color:var(--accent);">${(c.codigo||'?').slice(0,3)}</div>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:600;">${c.nombre||'Sin nombre'}</div><div style="font-size:11px;color:var(--text-muted);">${c.estado||'borrador'}</div></div>
+          <button class="btn-outline-custom" style="padding:4px 12px;font-size:11px;" onclick="openCourseDetail('${c._id||c.course_id}')">Ver</button>
+        </div>`).join('') || '<div class="text-muted-custom">Sin cursos creados</div>';
+      document.getElementById('homeRecentCourses').innerHTML = html;
+    }
+  } catch(e) {}
+
+  // Load enrolled courses count
+  try {
+    const { ok, data } = await api('GET', `/api/enrollments/student/${currentUser._id || currentUser.user_id}`);
+    if (ok && data.enrollments) {
+      document.getElementById('statEnrolled').textContent = data.enrollments.length;
+      const html = data.enrollments.slice(0,3).map(e => `
+        <div class="d-flex align-items-center gap-3 py-2" style="border-bottom:1px solid var(--border);">
+          <div style="width:36px;height:36px;background:var(--surface2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px;">📚</div>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:600;">${e.nombre||e.course_id}</div><div style="font-size:11px;color:var(--text-muted);">${e.estado||'activo'}</div></div>
+        </div>`).join('') || '<div class="text-muted-custom">Sin matrículas</div>';
+      document.getElementById('homeEnrolledCourses').innerHTML = html;
+    }
+  } catch(e) {}
+}
+
+// ══════════════════════════════════════════
+//  COURSES — TEACHER
+// ══════════════════════════════════════════
+async function saveCourse() {
+  clearAlert('createCourseAlert');
+  const codigo = document.getElementById('courseCode').value.trim();
+  const nombre = document.getElementById('courseName').value.trim();
+  const descripcion = document.getElementById('courseDesc').value.trim();
+  const fecha_inicio = document.getElementById('courseStart').value;
+  const fecha_fin = document.getElementById('courseEnd').value || null;
+  const foto = document.getElementById('coursePhoto').value.trim() || null;
+
+  if (!codigo || !nombre || !descripcion || !fecha_inicio)
+    return showAlert('createCourseAlert', 'Completa los campos obligatorios: Código, Nombre, Descripción y Fecha de Inicio.', 'warning');
+
+  showSpinner();
+  try {
+    const { ok, data } = await api('POST', '/api/courses', { codigo, nombre, descripcion, fecha_inicio, fecha_fin, foto, docente_id: currentUser._id || currentUser.user_id });
+    if (ok) {
+      showAlert('createCourseAlert', '¡Curso creado exitosamente!', 'success');
+      setTimeout(() => showPage('page-my-courses'), 1200);
+    } else {
+      showAlert('createCourseAlert', data.message || 'Error al crear el curso.', 'danger');
+    }
+  } catch(e) {
+    showAlert('createCourseAlert', 'Error de conexión.', 'danger');
+  } finally { hideSpinner(); }
+}
+
+async function loadMyCourses() {
+  if (!currentUser) return;
+  showSpinner();
+  try {
+    const { ok, data } = await api('GET', `/api/courses/teacher/${currentUser._id || currentUser.user_id}`);
+    if (ok && data.courses) {
+      if (!data.courses.length) {
+        document.getElementById('myCoursesGrid').innerHTML = '<div class="text-muted-custom">No has creado ningún curso aún. ¡Crea tu primer curso!</div>';
+        return;
+      }
+      document.getElementById('myCoursesGrid').innerHTML = data.courses.map(c => renderCourseCard(c, true)).join('');
+    }
+  } catch(e) {} finally { hideSpinner(); }
+}
+
+function renderCourseCard(c, isTeacher = false) {
+  const id = c._id || c.course_id;
+  const badge = c.publicado ? '<span class="course-card-badge badge-published">Publicado</span>' : `<span class="course-card-badge badge-${c.estado === 'terminado' ? 'ended' : 'draft'}">${c.estado || 'Borrador'}</span>`;
+  const img = c.foto ? `<img src="${c.foto}" onerror="this.style.display='none'" alt=""/>` : '';
+  const click = isTeacher ? `onclick="openCourseDetail('${id}')"` : `onclick="openStudentCourse('${id}','${c.codigo||''}','${(c.nombre||'').replace(/'/g,"\\'")}')"`; 
+  return `<div class="course-card" ${click}>
+    <div class="course-card-header">${img}<div class="course-initials">${(c.codigo||'?').slice(0,2)}</div>${badge}</div>
+    <div class="course-card-body">
+      <div class="course-card-code">${c.codigo||''}</div>
+      <div class="course-card-name">${c.nombre||'Sin nombre'}</div>
+      <div class="course-card-desc">${c.descripcion||''}</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:10px;">${formatDate(c.fecha_inicio)}</div>
+    </div>
+  </div>`;
+}
+
+async function openCourseDetail(courseId) {
+  currentCourseId = courseId;
+  showSpinner();
+  try {
+    // Try to get course info from teacher courses
+    const { ok, data } = await api('GET', `/api/courses/teacher/${currentUser._id || currentUser.user_id}`);
+    if (ok && data.courses) {
+      const course = data.courses.find(c => (c._id || c.course_id) === courseId);
+      if (course) {
+        document.getElementById('detailCode').textContent = course.codigo || '';
+        document.getElementById('detailName').textContent = course.nombre || 'Curso';
+        const btnPub = document.getElementById('btnPublish');
+        btnPub.style.display = course.publicado ? 'none' : 'inline-flex';
+      }
+    }
+  } catch(e) {} finally { hideSpinner(); }
+
+  switchDetailTab('sections');
+  showPage('page-course-detail');
+  loadSections();
+}
+
+async function publishCourse() {
+  if (!currentCourseId) return;
+  showSpinner();
+  try {
+    const { ok, data } = await api('PATCH', `/api/courses/${currentCourseId}/publish`, {});
+    if (ok) {
+      showAlert('courseDetailAlert', '¡Curso publicado exitosamente!', 'success');
+      document.getElementById('btnPublish').style.display = 'none';
+    } else {
+      showAlert('courseDetailAlert', data.message || 'Error al publicar.', 'danger');
+    }
+  } catch(e) { showAlert('courseDetailAlert', 'Error de conexión.', 'danger'); } finally { hideSpinner(); }
+}
+
+// ──── SECTIONS ────
+async function loadSections() {
+  if (!currentCourseId) return;
+  showSpinner();
+  try {
+    const { ok, data } = await api('GET', `/api/enrollments/${currentCourseId}/content`);
+    if (ok && data.sections) {
+      renderSections(data.sections);
+    } else {
+      document.getElementById('sectionsList').innerHTML = '<div class="text-muted-custom">Sin secciones aún. ¡Agrega tu primera sección!</div>';
+    }
+  } catch(e) {
+    document.getElementById('sectionsList').innerHTML = '<div class="text-muted-custom">Error cargando secciones.</div>';
+  } finally { hideSpinner(); }
+}
+
+function renderSections(sections, parentId = null, depth = 0) {
+  const children = sections.filter(s => (s.parent_section_id || null) === parentId);
+  if (!children.length && depth === 0) {
+    document.getElementById('sectionsList').innerHTML = '<div class="text-muted-custom">Sin secciones aún.</div>';
+    return;
+  }
+  if (depth === 0) document.getElementById('sectionsList').innerHTML = '';
+  children.forEach(s => {
+    const sId = s._id || s.section_id;
+    const el = document.createElement('div');
+    el.className = 'section-item' + (depth > 0 ? ' sub' : '');
+    el.innerHTML = `<div class="section-header">
+      <div><div class="section-title"><i class="bi bi-folder2" style="margin-right:8px;color:var(--accent);"></i>${s.titulo}</div>${s.descripcion ? `<div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${s.descripcion}</div>` : ''}</div>
+      <div class="section-actions">
+        <button class="btn-outline-custom" style="padding:5px 10px;font-size:11px;" onclick="showAddSectionModal('${sId}')"><i class="bi bi-plus"></i> Subsección</button>
+        <button class="btn-outline-custom" style="padding:5px 10px;font-size:11px;" onclick="showAddContentModal('${sId}')"><i class="bi bi-file-plus"></i> Contenido</button>
+      </div>
+    </div>`;
+    document.getElementById('sectionsList').appendChild(el);
+    if (s.contents && s.contents.length) {
+      s.contents.forEach(c => {
+        const cEl = document.createElement('div');
+        cEl.style.cssText = 'margin-left:'+(depth+1)*24+'px; margin-bottom:6px;';
+        cEl.innerHTML = `<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg);border-radius:6px;border:1px solid var(--border);">
+          <i class="bi ${contentIcon(c.tipo)}" style="color:var(--accent2);"></i>
+          <span style="font-size:13px;color:var(--text-dim);">${c.tipo}: ${c.data?.nombre_archivo || c.data?.texto?.slice(0,50) || c.data?.url || '—'}</span>
+        </div>`;
+        document.getElementById('sectionsList').appendChild(cEl);
+      });
+    }
+    renderSections(sections, sId, depth + 1);
+  });
+}
+
+function contentIcon(tipo) {
+  const icons = { texto: 'bi-file-text', documento: 'bi-file-earmark-pdf', video: 'bi-play-circle', imagen: 'bi-image' };
+  return icons[tipo] || 'bi-file';
+}
+
+function showAddSectionModal(parentId) {
+  document.getElementById('sectionParentId').value = parentId || '';
+  document.getElementById('sectionTitle').value = '';
+  document.getElementById('sectionDesc').value = '';
+  document.getElementById('sectionOrder').value = '1';
+  clearAlert('sectionModalAlert');
+  new bootstrap.Modal(document.getElementById('modalSection')).show();
+}
+
+async function saveSection() {
+  clearAlert('sectionModalAlert');
+  const titulo = document.getElementById('sectionTitle').value.trim();
+  const descripcion = document.getElementById('sectionDesc').value.trim();
+  const orden = parseInt(document.getElementById('sectionOrder').value) || 1;
+  const parent_section_id = document.getElementById('sectionParentId').value || null;
+
+  if (!titulo) return showAlert('sectionModalAlert', 'El título es obligatorio.', 'warning');
+
+  showSpinner();
+  try {
+    const { ok, data } = await api('POST', `/api/courses/${currentCourseId}/sections`, { titulo, descripcion, parent_section_id, orden });
+    if (ok) {
+      bootstrap.Modal.getInstance(document.getElementById('modalSection')).hide();
+      loadSections();
+    } else {
+      showAlert('sectionModalAlert', data.message || 'Error al crear la sección.', 'danger');
+    }
+  } catch(e) { showAlert('sectionModalAlert', 'Error de conexión.', 'danger'); } finally { hideSpinner(); }
+}
+
+// ──── CONTENT ────
+function showAddContentModal(sectionId) {
+  document.getElementById('contentSectionId').value = sectionId;
+  document.getElementById('contentType').value = 'texto';
+  document.getElementById('contentText').value = '';
+  document.getElementById('contentUrl').value = '';
+  document.getElementById('contentFilename').value = '';
+  document.getElementById('contentDuration').value = '';
+  document.getElementById('contentMime').value = '';
+  document.getElementById('contentOrder').value = '1';
+  clearAlert('contentModalAlert');
+  toggleContentFields();
+  new bootstrap.Modal(document.getElementById('modalContent')).show();
+}
+
+function toggleContentFields() {
+  const tipo = document.getElementById('contentType').value;
+  document.getElementById('textContent').style.display = tipo === 'texto' ? 'block' : 'none';
+  document.getElementById('urlContent').style.display = tipo !== 'texto' ? 'block' : 'none';
+  document.getElementById('videoDuration').style.display = tipo === 'video' ? 'block' : 'none';
+}
+
+async function saveContent() {
+  clearAlert('contentModalAlert');
+  const sectionId = document.getElementById('contentSectionId').value;
+  const tipo = document.getElementById('contentType').value;
+  const orden = parseInt(document.getElementById('contentOrder').value) || 1;
+  let data_obj = {};
+
+  if (tipo === 'texto') {
+    const texto = document.getElementById('contentText').value.trim();
+    if (!texto) return showAlert('contentModalAlert', 'El texto es obligatorio.', 'warning');
+    data_obj = { texto };
+  } else {
+    const url = document.getElementById('contentUrl').value.trim();
+    if (!url) return showAlert('contentModalAlert', 'La URL es obligatoria.', 'warning');
+    data_obj = { url, nombre_archivo: document.getElementById('contentFilename').value.trim() || null, mime_type: document.getElementById('contentMime').value.trim() || null };
+    if (tipo === 'video') data_obj.duracion_segundos = parseInt(document.getElementById('contentDuration').value) || null;
+  }
+
+  showSpinner();
+  try {
+    const { ok, data } = await api('POST', `/api/courses/${currentCourseId}/sections/${sectionId}/content`, { tipo, orden, data: data_obj });
+    if (ok) {
+      bootstrap.Modal.getInstance(document.getElementById('modalContent')).hide();
+      loadSections();
+    } else {
+      showAlert('contentModalAlert', data.message || 'Error al agregar contenido.', 'danger');
+    }
+  } catch(e) { showAlert('contentModalAlert', 'Error de conexión.', 'danger'); } finally { hideSpinner(); }
+}
+
+// ──── EVALUATIONS (TEACHER) ────
+function switchDetailTab(tab) {
+  ['sections','evaluations','students','messages'].forEach(t => {
+    document.getElementById(`detail-tab-${t}`).style.display = t === tab ? 'block' : 'none';
+    document.getElementById(`dtab-${t}`).classList.toggle('active', t === tab);
+  });
+  if (tab === 'students') loadStudentsList();
+  if (tab === 'evaluations') loadEvaluationsTeacher();
+  if (tab === 'messages') loadCourseThreads();
+}
+
+async function loadEvaluationsTeacher() {
+  // Evaluations would come from courses content
+  document.getElementById('evalList').innerHTML = '<div class="text-muted-custom">Cargando evaluaciones...</div>';
+}
+
+function showAddEvaluationModal() {
+  questionsCount = 0;
+  document.getElementById('evalTitle').value = '';
+  document.getElementById('evalDesc').value = '';
+  document.getElementById('evalStart').value = '';
+  document.getElementById('evalEnd').value = '';
+  document.getElementById('questionsContainer').innerHTML = '';
+  clearAlert('evalModalAlert');
+  addQuestion();
+  new bootstrap.Modal(document.getElementById('modalEvaluation')).show();
+}
+
+function addQuestion() {
+  questionsCount++;
+  const qn = questionsCount;
+  const div = document.createElement('div');
+  div.className = 'question-block';
+  div.id = `question-${qn}`;
+  div.innerHTML = `<div class="d-flex justify-content-between align-items-center mb-2">
+    <div style="font-family:var(--font-mono);font-size:11px;color:var(--accent);">PREGUNTA ${qn}</div>
+    <button class="btn-danger-custom" onclick="this.closest('.question-block').remove()" style="padding:4px 10px;font-size:11px;">Eliminar</button>
+  </div>
+  <div class="mb-2"><input type="text" class="form-control" placeholder="Enunciado de la pregunta *" id="q${qn}-text"/></div>
+  <div id="q${qn}-options">
+    <div class="option-row"><input type="radio" name="q${qn}-correct" class="option-radio" value="0"/><input type="text" class="form-control" placeholder="Opción A"/></div>
+    <div class="option-row"><input type="radio" name="q${qn}-correct" class="option-radio" value="1"/><input type="text" class="form-control" placeholder="Opción B"/></div>
+  </div>
+  <button class="btn-outline-custom mt-2" style="padding:5px 12px;font-size:11px;" onclick="addOption(${qn})"><i class="bi bi-plus"></i> Opción</button>
+  <div style="font-size:11px;color:var(--text-muted);margin-top:6px;"><i class="bi bi-info-circle"></i> Selecciona la respuesta correcta con el círculo</div>`;
+  document.getElementById('questionsContainer').appendChild(div);
+}
+
+function addOption(qn) {
+  const container = document.getElementById(`q${qn}-options`);
+  const count = container.querySelectorAll('.option-row').length;
+  const div = document.createElement('div');
+  div.className = 'option-row';
+  div.innerHTML = `<input type="radio" name="q${qn}-correct" class="option-radio" value="${count}"/><input type="text" class="form-control" placeholder="Opción ${String.fromCharCode(65+count)}"/>`;
+  container.appendChild(div);
+}
+
+async function saveEvaluation() {
+  clearAlert('evalModalAlert');
+  const titulo = document.getElementById('evalTitle').value.trim();
+  const descripcion = document.getElementById('evalDesc').value.trim();
+  const fecha_inicio = document.getElementById('evalStart').value;
+  const fecha_fin = document.getElementById('evalEnd').value;
+
+  if (!titulo || !fecha_inicio || !fecha_fin)
+    return showAlert('evalModalAlert', 'Completa título y fechas.', 'warning');
+  if (new Date(fecha_fin) <= new Date(fecha_inicio))
+    return showAlert('evalModalAlert', 'La fecha de fin debe ser posterior al inicio.', 'warning');
+
+  const preguntas = [];
+  const qBlocks = document.querySelectorAll('.question-block');
+  for (let i = 0; i < qBlocks.length; i++) {
+    const qn = qBlocks[i].id.split('-')[1];
+    const enunciado = document.getElementById(`q${qn}-text`).value.trim();
+    if (!enunciado) return showAlert('evalModalAlert', `La pregunta ${i+1} no tiene enunciado.`, 'warning');
+    const optionRows = qBlocks[i].querySelectorAll('.option-row');
+    const correctRadio = qBlocks[i].querySelector(`input[name="q${qn}-correct"]:checked`);
+    const correctIdx = correctRadio ? parseInt(correctRadio.value) : -1;
+    if (correctIdx === -1) return showAlert('evalModalAlert', `Selecciona la respuesta correcta de la pregunta ${i+1}.`, 'warning');
+    const opciones = [];
+    optionRows.forEach((row, idx) => {
+      const txt = row.querySelector('input[type="text"]').value.trim();
+      if (txt) opciones.push({ texto: txt, es_correcta: idx === correctIdx });
+    });
+    if (opciones.length < 2) return showAlert('evalModalAlert', `La pregunta ${i+1} necesita al menos 2 opciones.`, 'warning');
+    preguntas.push({ enunciado, orden: i+1, opciones });
+  }
+  if (!preguntas.length) return showAlert('evalModalAlert', 'Agrega al menos una pregunta.', 'warning');
+
+  showSpinner();
+  try {
+    const { ok, data } = await api('POST', '/api/evaluations', { course_id: currentCourseId, titulo, descripcion, fecha_inicio, fecha_fin, preguntas });
+    if (ok) {
+      bootstrap.Modal.getInstance(document.getElementById('modalEvaluation')).hide();
+      showAlert('courseDetailAlert', '¡Evaluación creada!', 'success');
+    } else {
+      showAlert('evalModalAlert', data.message || 'Error al crear evaluación.', 'danger');
+    }
+  } catch(e) { showAlert('evalModalAlert', 'Error de conexión.', 'danger'); } finally { hideSpinner(); }
+}
+
+// ──── STUDENTS LIST ────
+async function loadStudentsList() {
+  if (!currentCourseId) return;
+  showSpinner();
+  try {
+    const { ok, data } = await api('GET', `/api/courses/${currentCourseId}/students`);
+    if (ok && data.students) {
+      if (!data.students.length) {
+        document.getElementById('studentsList').innerHTML = '<div class="text-muted-custom">No hay estudiantes matriculados aún.</div>';
+        return;
+      }
+      document.getElementById('studentsList').innerHTML = `<div class="card-custom" style="padding:0;overflow:hidden;">
+        <table class="table-custom">
+          <thead><tr><th>Nombre</th><th>Usuario</th><th>Fecha Matrícula</th><th>Estado</th></tr></thead>
+          <tbody>${data.students.map(s => `<tr>
+            <td><div class="d-flex align-items-center gap-2"><div class="friend-avatar" style="width:32px;height:32px;font-size:12px;">${getInitials(s.nombre_completo||s.username)}</div>${s.nombre_completo||'—'}</div></td>
+            <td class="mono" style="color:var(--accent);font-size:12px;">@${s.username||'—'}</td>
+            <td>${formatDate(s.fecha)}</td>
+            <td><span class="course-card-badge badge-active">${s.estado||'activo'}</span></td>
+          </tr>`).join('')}</tbody>
+        </table></div>`;
+    }
+  } catch(e) {} finally { hideSpinner(); }
+}
+
+// ──── COURSE THREADS (TEACHER) ────
+async function loadCourseThreads() {
+  if (!currentCourseId) return;
+  showSpinner();
+  try {
+    const { ok, data } = await api('GET', `/api/messages/course/${currentCourseId}/threads`);
+    if (ok && data.threads) {
+      if (!data.threads.length) {
+        document.getElementById('courseThreadsList').innerHTML = '<div class="text-muted-custom">Sin consultas de estudiantes.</div>';
+        return;
+      }
+      document.getElementById('courseThreadsList').innerHTML = data.threads.map(t => `
+        <div class="card-custom mb-2">
+          <div class="d-flex justify-content-between align-items-start">
+            <div><div style="font-weight:600;font-size:14px;">${t.sender_nombre||'Estudiante'}</div><div style="color:var(--text-dim);font-size:13px;margin-top:4px;">${t.contenido||''}</div></div>
+            <div style="font-size:11px;font-family:var(--font-mono);color:var(--text-muted);">${formatDate(t.fecha)}</div>
+          </div>
+          <div class="mt-3">
+            <textarea class="form-control mb-2" id="reply-${t._id}" rows="2" placeholder="Responde aquí..."></textarea>
+            <button class="btn-outline-custom" style="padding:6px 14px;font-size:12px;" onclick="replyToThread('${t._id}')"><i class="bi bi-reply"></i> Responder</button>
+          </div>
+        </div>`).join('');
+    }
+  } catch(e) {} finally { hideSpinner(); }
+}
+
+async function replyToThread(threadId) {
+  const contenido = document.getElementById(`reply-${threadId}`).value.trim();
+  if (!contenido) return;
+  showSpinner();
+  try {
+    const { ok, data } = await api('POST', '/api/messages/course', {
+      course_id: currentCourseId,
+      sender_id: currentUser._id || currentUser.user_id,
+      contenido,
+      tipo: 'respuesta',
+      respuesta_a: threadId
+    });
+    if (ok) { document.getElementById(`reply-${threadId}`).value = ''; showAlert('courseDetailAlert', 'Respuesta enviada.', 'success'); }
+  } catch(e) {} finally { hideSpinner(); }
+}
+
+// ──── CLONE COURSE ────
+function showCloneModal() {
+  document.getElementById('cloneCode').value = '';
+  document.getElementById('cloneName').value = '';
+  document.getElementById('cloneStart').value = '';
+  document.getElementById('cloneEnd').value = '';
+  clearAlert('cloneAlert');
+  new bootstrap.Modal(document.getElementById('modalClone')).show();
+}
+
+async function doClone() {
+  clearAlert('cloneAlert');
+  const codigo = document.getElementById('cloneCode').value.trim();
+  const nombre = document.getElementById('cloneName').value.trim();
+  const fecha_inicio = document.getElementById('cloneStart').value;
+  const fecha_fin = document.getElementById('cloneEnd').value || null;
+  if (!codigo || !nombre || !fecha_inicio) return showAlert('cloneAlert', 'Completa todos los campos obligatorios.', 'warning');
+
+  showSpinner();
+  try {
+    const { ok, data } = await api('POST', `/api/courses/${currentCourseId}/clone`, { codigo, nombre, fecha_inicio, fecha_fin });
+    if (ok) {
+      bootstrap.Modal.getInstance(document.getElementById('modalClone')).hide();
+      showAlert('courseDetailAlert', '¡Curso clonado exitosamente!', 'success');
+      setTimeout(() => showPage('page-my-courses'), 1200);
+    } else {
+      showAlert('cloneAlert', data.message || 'Error al clonar.', 'danger');
+    }
+  } catch(e) { showAlert('cloneAlert', 'Error de conexión.', 'danger'); } finally { hideSpinner(); }
+}
+
+// ══════════════════════════════════════════
+//  SEARCH COURSES
+// ══════════════════════════════════════════
+async function searchCourses() {
+  clearAlert('searchAlert');
+  const q = document.getElementById('searchQuery').value.trim();
+  showSpinner();
+  try {
+    const { ok, data } = await api('GET', `/api/enrollments/search${q ? '?q='+encodeURIComponent(q) : ''}`);
+    if (ok && data.courses) {
+      if (!data.courses.length) {
+        document.getElementById('searchResults').innerHTML = '<div class="text-muted-custom">No se encontraron cursos.</div>';
+        return;
+      }
+      document.getElementById('searchResults').innerHTML = data.courses.map(c => {
+        const id = c._id || c.course_id;
+        return `<div class="course-card">
+          <div class="course-card-header"><div class="course-initials">${(c.codigo||'?').slice(0,2)}</div><span class="course-card-badge badge-published">Publicado</span></div>
+          <div class="course-card-body">
+            <div class="course-card-code">${c.codigo||''}</div>
+            <div class="course-card-name">${c.nombre||'Sin nombre'}</div>
+            <div class="course-card-desc">${c.descripcion||''}</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:8px;">${formatDate(c.fecha_inicio)}</div>
+            <button class="btn-primary-custom mt-3" onclick="enrollCourse('${id}')"><i class="bi bi-plus-circle"></i> Matricularse</button>
+          </div>
+        </div>`;
+      }).join('');
+    } else {
+      showAlert('searchAlert', data.message || 'Error al buscar cursos.', 'danger');
+    }
+  } catch(e) { showAlert('searchAlert', 'Error de conexión.', 'danger'); } finally { hideSpinner(); }
+}
+
+async function enrollCourse(courseId) {
+  showSpinner();
+  try {
+    const { ok, data } = await api('POST', '/api/enrollments', { user_id: currentUser._id || currentUser.user_id, course_id: courseId });
+    if (ok) {
+      showAlert('searchAlert', '¡Te has matriculado exitosamente!', 'success');
+    } else {
+      showAlert('searchAlert', data.message || 'Error al matricularse.', 'danger');
+    }
+  } catch(e) { showAlert('searchAlert', 'Error de conexión.', 'danger'); } finally { hideSpinner(); }
+}
+
+// ══════════════════════════════════════════
+//  ENROLLED COURSES (STUDENT)
+// ══════════════════════════════════════════
+async function loadEnrolledCourses() {
+  if (!currentUser) return;
+  showSpinner();
+  try {
+    const { ok, data } = await api('GET', `/api/enrollments/student/${currentUser._id || currentUser.user_id}`);
+    if (ok && data.enrollments) {
+      if (!data.enrollments.length) {
+        document.getElementById('enrolledGrid').innerHTML = '<div class="text-muted-custom">No estás matriculado en ningún curso. ¡Explora los cursos disponibles!</div>';
+        return;
+      }
+      document.getElementById('enrolledGrid').innerHTML = data.enrollments.map(e => renderCourseCard(e, false)).join('');
+    }
+  } catch(e) {} finally { hideSpinner(); }
+}
+
+function openStudentCourse(courseId, codigo, nombre) {
+  currentStudentCourseId = courseId;
+  document.getElementById('studentDetailCode').textContent = codigo;
+  document.getElementById('studentDetailName').textContent = nombre;
+  switchStudentTab('content');
+  showPage('page-student-course');
+  loadStudentContent();
+}
+
+function switchStudentTab(tab) {
+  ['content','evaluations','classmates','queries'].forEach(t => {
+    document.getElementById(`student-tab-${t}`).style.display = t === tab ? 'block' : 'none';
+    document.getElementById(`stab-${t}`).classList.toggle('active', t === tab);
+  });
+  if (tab === 'evaluations') loadStudentEvals();
+  if (tab === 'classmates') loadClassmates();
+  if (tab === 'queries') loadStudentQueries();
+}
+
+async function loadStudentContent() {
+  if (!currentStudentCourseId) return;
+  showSpinner();
+  try {
+    const { ok, data } = await api('GET', `/api/enrollments/${currentStudentCourseId}/content`);
+    if (ok && data.sections) {
+      if (!data.sections.length) {
+        document.getElementById('studentSections').innerHTML = '<div class="text-muted-custom">Este curso aún no tiene contenido.</div>';
+        return;
+      }
+      document.getElementById('studentSections').innerHTML = data.sections.filter(s => !s.parent_section_id).map(s => renderStudentSection(s, data.sections)).join('');
+    }
+  } catch(e) {} finally { hideSpinner(); }
+}
+
+function renderStudentSection(section, allSections, depth = 0) {
+  const children = allSections.filter(s => s.parent_section_id === (section._id || section.section_id));
+  return `<div class="section-item" style="${depth > 0 ? 'margin-left:'+depth*20+'px;' : ''}">
+    <div class="section-title"><i class="bi bi-${children.length ? 'folder2-open' : 'file-text'}" style="margin-right:8px;color:var(--accent);"></i>${section.titulo}</div>
+    ${section.descripcion ? `<div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${section.descripcion}</div>` : ''}
+    ${(section.contents||[]).map(c => `<div style="margin-top:8px;padding:8px 12px;background:var(--bg);border-radius:6px;border:1px solid var(--border);">
+      <div class="d-flex align-items-center gap-2"><i class="bi ${contentIcon(c.tipo)}" style="color:var(--accent2);"></i>
+      <span style="font-size:13px;">${c.tipo === 'texto' ? (c.data?.texto?.slice(0,100)+'...') : (c.data?.nombre_archivo || c.data?.url || c.tipo)}</span></div>
+    </div>`).join('')}
+    ${children.map(ch => renderStudentSection(ch, allSections, depth+1)).join('')}
+  </div>`;
+}
+
+// ──── STUDENT EVALUATIONS ────
+async function loadStudentEvals() {
+  document.getElementById('studentEvals').innerHTML = '<div class="text-muted-custom">Cargando evaluaciones...</div>';
+  // Fetch results
+  try {
+    const { ok, data } = await api('GET', `/api/evaluations/student/${currentUser._id||currentUser.user_id}/course/${currentStudentCourseId}`);
+    if (ok) {
+      const results = data.submissions || [];
+      document.getElementById('studentEvals').innerHTML = results.length
+        ? `<div style="margin-bottom:16px;font-weight:600;">Resultados de Evaluaciones</div>
+          <table class="table-custom" style="background:var(--surface);border-radius:var(--radius);"><thead><tr><th>Evaluación</th><th>Fecha</th><th>Calificación</th><th>Correctas</th></tr></thead>
+          <tbody>${results.map(r => `<tr><td>${r.evaluation_id||'—'}</td><td>${formatDate(r.fecha)}</td>
+          <td style="color:${r.calificacion>=70?'var(--accent)':'var(--danger)'}; font-weight:700;">${r.calificacion?.toFixed(1)||0}%</td>
+          <td>${r.correctas||0}/${r.total_preguntas||0}</td></tr>`).join('')}</tbody></table>`
+        : '<div class="text-muted-custom">No has realizado evaluaciones aún.</div>';
+    }
+  } catch(e) {}
+}
+
+async function loadClassmates() {
+  if (!currentStudentCourseId) return;
+  showSpinner();
+  try {
+    const { ok, data } = await api('GET', `/api/social/courses/${currentStudentCourseId}/mates`);
+    if (ok && data.classmates) {
+      document.getElementById('classmatesList').innerHTML = data.classmates.length
+        ? data.classmates.map(u => `<div class="friend-card">
+            <div class="friend-avatar">${getInitials(u.nombre||u.username)}</div>
+            <div><div class="friend-name">${u.nombre||u.nombre_completo||'—'}</div><div class="friend-username">@${u.username||'—'}</div></div>
+          </div>`).join('')
+        : '<div class="text-muted-custom">No hay otros compañeros en este curso.</div>';
+    }
+  } catch(e) {} finally { hideSpinner(); }
+}
+
+async function loadStudentQueries() {
+  if (!currentStudentCourseId) return;
+  try {
+    const { ok, data } = await api('GET', `/api/messages/course/${currentStudentCourseId}/threads`);
+    if (ok && data.threads) {
+      const myThreads = (data.threads || []).filter(t => t.sender_id === (currentUser._id || currentUser.user_id));
+      document.getElementById('queryThreadsList').innerHTML = myThreads.length
+        ? myThreads.map(t => `<div class="card-custom mb-2">
+            <div style="font-size:13px;color:var(--text-dim);">${t.contenido}</div>
+            <div style="font-size:11px;font-family:var(--font-mono);color:var(--text-muted);margin-top:6px;">${formatDate(t.fecha)}</div>
+          </div>`).join('')
+        : '<div class="text-muted-custom">No tienes consultas enviadas.</div>';
+    }
+  } catch(e) {}
+}
+
+async function sendQuery() {
+  const contenido = document.getElementById('newQueryText').value.trim();
+  if (!contenido) return;
+  showSpinner();
+  try {
+    const { ok, data } = await api('POST', '/api/messages/course', {
+      course_id: currentStudentCourseId,
+      sender_id: currentUser._id || currentUser.user_id,
+      contenido, tipo: 'consulta'
+    });
+    if (ok) {
+      document.getElementById('newQueryText').value = '';
+      loadStudentQueries();
+    }
+  } catch(e) {} finally { hideSpinner(); }
+}
+
+// ══════════════════════════════════════════
+//  SOCIAL — FRIENDS
+// ══════════════════════════════════════════
+async function searchUsers() {
+  const q = document.getElementById('searchUserQuery').value.trim();
+  if (!q) return;
+  showSpinner();
+  try {
+    const { ok, data } = await api('GET', `/api/social/users/search?q=${encodeURIComponent(q)}`);
+    if (ok && data.users) {
+      document.getElementById('userSearchResults').innerHTML = data.users.length
+        ? data.users.map(u => `<div class="friend-card">
+            <div class="friend-avatar">${getInitials(u.nombre||u.nombre_completo||u.username)}</div>
+            <div style="flex:1;"><div class="friend-name">${u.nombre||u.nombre_completo||'—'}</div><div class="friend-username">@${u.username}</div></div>
+            <button class="btn-outline-custom" style="padding:5px 12px;font-size:11px;" onclick="sendFriendRequest('${u.user_id||u._id}')"><i class="bi bi-person-plus"></i></button>
+          </div>`).join('')
+        : '<div class="text-muted-custom">No se encontraron usuarios.</div>';
+    }
+  } catch(e) {} finally { hideSpinner(); }
+}
+
+async function sendFriendRequest(userId) {
+  showSpinner();
+  try {
+    const { ok, data } = await api('POST', '/api/social/friends/request', { requester_id: currentUser._id || currentUser.user_id, requested_id: userId });
+    if (ok) alert('Solicitud de amistad enviada.');
+    else alert(data.message || 'Error al enviar solicitud.');
+  } catch(e) {} finally { hideSpinner(); }
+}
+
+async function loadFriends() {
+  if (!currentUser) return;
+  showSpinner();
+  try {
+    const { ok, data } = await api('GET', `/api/social/friends/${currentUser._id || currentUser.user_id}`);
+    if (ok && data.friends) {
+      document.getElementById('friendsList').innerHTML = data.friends.length
+        ? data.friends.map(f => `<div class="friend-card">
+            <div class="friend-avatar">${getInitials(f.nombre||f.nombre_completo||f.username)}</div>
+            <div style="flex:1;"><div class="friend-name">${f.nombre||f.nombre_completo||'—'}</div><div class="friend-username">@${f.username||'—'}</div></div>
+            <div class="d-flex gap-2">
+              <button class="btn-outline-custom" style="padding:5px 10px;font-size:11px;" onclick="viewFriendCourses('${f.user_id||f._id}','${f.nombre||f.username}')"><i class="bi bi-mortarboard"></i></button>
+              <button class="btn-outline-custom" style="padding:5px 10px;font-size:11px;" onclick="openConversation('${f.user_id||f._id}','${f.nombre||f.username}')"><i class="bi bi-chat"></i></button>
+            </div>
+          </div>`).join('')
+        : '<div class="text-muted-custom">No tienes amigos aún. ¡Busca y agrega compañeros!</div>';
+      document.getElementById('statFriends').textContent = data.friends.length;
+    }
+  } catch(e) {} finally { hideSpinner(); }
+}
+
+async function viewFriendCourses(friendId, friendName) {
+  showSpinner();
+  try {
+    const { ok, data } = await api('GET', `/api/social/friends/${friendId}/courses`);
+    if (ok && data.courses) {
+      document.getElementById('friendCoursesTitle').textContent = `Cursos de ${friendName}`;
+      document.getElementById('friendCoursesList').innerHTML = data.courses.length
+        ? `<table class="table-custom"><thead><tr><th>Rol</th><th>Código</th><th>Nombre</th><th>Estado</th></tr></thead>
+          <tbody>${data.courses.map(c => `<tr>
+            <td><span class="course-card-badge ${c.rol==='TEACHES'?'badge-published':'badge-active'}">${c.rol==='TEACHES'?'Docente':'Estudiante'}</span></td>
+            <td class="mono" style="font-size:12px;">${c.codigo||'—'}</td><td>${c.nombre||'—'}</td>
+            <td><span class="course-card-badge badge-${c.estado==='activo'?'active':'ended'}">${c.estado}</span></td>
+          </tr>`).join('')}</tbody></table>`
+        : '<div class="text-muted-custom">Este usuario no tiene cursos.</div>';
+      new bootstrap.Modal(document.getElementById('modalFriendCourses')).show();
+    }
+  } catch(e) {} finally { hideSpinner(); }
+}
+
+// ══════════════════════════════════════════
+//  DIRECT MESSAGES
+// ══════════════════════════════════════════
+async function loadConversations() {
+  if (!currentUser) return;
+  showSpinner();
+  try {
+    const { ok, data } = await api('GET', `/api/messages/conversations/${currentUser._id || currentUser.user_id}`);
+    if (ok && data.conversations) {
+      document.getElementById('conversationsList').innerHTML = data.conversations.length
+        ? data.conversations.map(c => `<div class="friend-card" onclick="openConversation('${c.user_id||c._id}','${c.username||''}')">
+            <div class="friend-avatar" style="width:36px;height:36px;font-size:13px;">${getInitials(c.username||'?')}</div>
+            <div style="flex:1;min-width:0;"><div class="friend-name" style="font-size:13px;">${c.username||'—'}</div><div class="friend-username" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.preview||''}</div></div>
+          </div>`).join('')
+        : '<div class="text-muted-custom" style="font-size:13px;">Sin conversaciones</div>';
+      document.getElementById('statMessages').textContent = data.conversations.length;
+    }
+  } catch(e) {} finally { hideSpinner(); }
+}
+
+async function openConversation(userId, name) {
+  currentChatUserId = userId;
+  document.getElementById('chatWithName').textContent = name || userId;
+  document.getElementById('chatWithId').textContent = userId;
+  document.getElementById('chatAvatarInitial').textContent = getInitials(name || '?');
+  document.getElementById('chatPanel').style.display = 'block';
+  document.getElementById('chatPlaceholder').style.display = 'none';
+  if (document.getElementById('page-messages').classList.contains('active') === false) showPage('page-messages');
+  await loadDirectMessages();
+}
+
+async function loadDirectMessages() {
+  if (!currentChatUserId || !currentUser) return;
+  try {
+    const myId = currentUser._id || currentUser.user_id;
+    const { ok, data } = await api('GET', `/api/messages/direct/${myId}/${currentChatUserId}`);
+    if (ok && data.messages) {
+      const win = document.getElementById('chatMessages');
+      win.innerHTML = data.messages.map(m => {
+        const isSent = m.sender_id === myId;
+        return `<div>
+          <div class="message-bubble ${isSent ? 'sent' : 'received'}">${m.contenido}</div>
+          <div class="message-meta" style="${isSent ? 'text-align:right;' : ''}">${formatDate(m.fecha)}</div>
+        </div>`;
+      }).join('') || '<div class="text-muted-custom" style="text-align:center;margin-top:40px;">Inicia la conversación</div>';
+      win.scrollTop = win.scrollHeight;
+    }
+  } catch(e) {}
+}
+
+async function sendDirectMessage() {
+  const contenido = document.getElementById('msgInput').value.trim();
+  if (!contenido || !currentChatUserId) return;
+  showSpinner();
+  try {
+    const { ok } = await api('POST', '/api/messages/direct', {
+      sender_id: currentUser._id || currentUser.user_id,
+      receiver_id: currentChatUserId,
+      contenido
+    });
+    if (ok) {
+      document.getElementById('msgInput').value = '';
+      await loadDirectMessages();
+    }
+  } catch(e) {} finally { hideSpinner(); }
+}
+
+// ══════════════════════════════════════════
+//  PASSWORD
+// ══════════════════════════════════════════
+async function changePassword() {
+  clearAlert('pwChangeAlert');
+  const current_password = document.getElementById('pwCurrent').value;
+  const new_password = document.getElementById('pwNew').value;
+  const confirm = document.getElementById('pwConfirm').value;
+
+  if (!current_password || !new_password || !confirm)
+    return showAlert('pwChangeAlert', 'Completa todos los campos.', 'warning');
+  if (new_password !== confirm)
+    return showAlert('pwChangeAlert', 'Las contraseñas nuevas no coinciden.', 'danger');
+  if (new_password.length < 8)
+    return showAlert('pwChangeAlert', 'La nueva contraseña debe tener al menos 8 caracteres.', 'warning');
+
+  showSpinner();
+  try {
+    const { ok, data } = await api('PUT', '/api/password/change', {
+      user_id: currentUser._id || currentUser.user_id,
+      current_password, new_password
+    });
+    if (ok) {
+      showAlert('pwChangeAlert', '¡Contraseña actualizada exitosamente!', 'success');
+      document.getElementById('pwCurrent').value = '';
+      document.getElementById('pwNew').value = '';
+      document.getElementById('pwConfirm').value = '';
+    } else {
+      showAlert('pwChangeAlert', data.message || 'Error al cambiar contraseña.', 'danger');
+    }
+  } catch(e) { showAlert('pwChangeAlert', 'Error de conexión.', 'danger'); } finally { hideSpinner(); }
+}
+
+async function invalidateAllSessions() {
+  clearAlert('sessionAlert');
+  if (!confirm('¿Cerrar todas las sesiones activas?')) return;
+  showSpinner();
+  try {
+    const { ok, data } = await api('POST', '/api/session/invalidate-all', { user_id: currentUser._id || currentUser.user_id });
+    if (ok) showAlert('sessionAlert', 'Todas las sesiones han sido cerradas.', 'success');
+    else showAlert('sessionAlert', data.message || 'Error al cerrar sesiones.', 'danger');
+  } catch(e) { showAlert('sessionAlert', 'Error de conexión.', 'danger'); } finally { hideSpinner(); }
+}
+
+// ══════════════════════════════════════════
+//  DB HEALTH
+// ══════════════════════════════════════════
+async function loadHealthCheck() {
+  document.getElementById('healthGrid').innerHTML = '<div class="text-muted-custom">Verificando conexiones...</div>';
+  showSpinner();
+  try {
+    const { ok, data } = await api('GET', '/api/health');
+    const dbs = data.databases || {};
+    const dbNames = { mongodb: 'MongoDB', redis: 'Redis', neo4j: 'Neo4j', cassandra: 'Cassandra' };
+    const dbIcons = { mongodb: 'bi-database', redis: 'bi-lightning', neo4j: 'bi-diagram-3', cassandra: 'bi-hdd-stack' };
+    document.getElementById('healthGrid').innerHTML = Object.entries(dbNames).map(([key, label]) => {
+      const status = dbs[key];
+      const isOk = status === 'ok' || status === 'connected' || status === true;
+      return `<div class="health-card">
+        <i class="bi ${dbIcons[key]}" style="font-size:32px;color:${isOk?'var(--accent)':'var(--danger)'};margin-bottom:12px;"></i>
+        <div style="font-weight:700;margin-bottom:8px;">${label}</div>
+        <div><span class="health-dot ${isOk?'ok':'err'}"></span><span style="font-size:13px;color:${isOk?'var(--accent)':'var(--danger)'};">${isOk?'Conectado':'Error'}</span></div>
+        <div style="font-size:11px;font-family:var(--font-mono);color:var(--text-muted);margin-top:6px;">${typeof status === 'string' ? status : (isOk?'online':'offline')}</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    document.getElementById('healthGrid').innerHTML = '<div class="alert-custom alert-danger"><i class="bi bi-exclamation-triangle"></i> No se pudo conectar al servidor.</div>';
+  } finally { hideSpinner(); }
+}
+
+// ══════════════════════════════════════════
+//  ADMIN
+// ══════════════════════════════════════════
+function switchAdminTab(tab) {
+  ['activity','security','audit','logins'].forEach(t => {
+    document.getElementById(`admin-tab-${t}`).style.display = t === tab ? 'block' : 'none';
+    document.getElementById(`atab-${t}`).classList.toggle('active', t === tab);
+  });
+}
+
+async function loadUserActivity() {
+  const userId = document.getElementById('adminUserId').value.trim();
+  if (!userId) return;
+  showSpinner();
+  try {
+    const { ok, data } = await api('GET', `/api/admin/activity/${userId}`);
+    if (ok && data.events) {
+      document.getElementById('activityTable').innerHTML = renderTable(
+        ['Acción', 'Entidad', 'Resultado', 'IP', 'Fecha'],
+        data.events.map(e => [e.accion||'—', e.entidad||'—', e.resultado||'—', e.ip||'—', formatDate(e.timestamp)])
+      );
+    }
+  } catch(e) {} finally { hideSpinner(); }
+}
+
+async function loadSecurityEvents() {
+  showSpinner();
+  try {
+    const { ok, data } = await api('GET', '/api/admin/security-events');
+    if (ok && data.events) {
+      document.getElementById('securityTable').innerHTML = renderTable(
+        ['Usuario', 'Tipo', 'IP', 'Notificado', 'Fecha'],
+        data.events.map(e => [e.user_id||'—', e.tipo||'—', e.ip||'—', e.notificado?'Sí':'No', formatDate(e.timestamp)])
+      );
+    }
+  } catch(e) {} finally { hideSpinner(); }
+}
+
+async function loadAuditTrail() {
+  const table = document.getElementById('auditTable').value.trim();
+  if (!table) return;
+  showSpinner();
+  try {
+    const { ok, data } = await api('GET', `/api/admin/audit/${table}`);
+    if (ok && data.logs) {
+      document.getElementById('auditTrailTable').innerHTML = renderTable(
+        ['Usuario', 'Acción', 'Entidad', 'Resultado', 'IP', 'Fecha'],
+        data.logs.map(l => [l.user_id||'—', l.accion||'—', l.entidad||'—', l.resultado||'—', l.ip||'—', formatDate(l.timestamp)])
+      );
+    }
+  } catch(e) {} finally { hideSpinner(); }
+}
+
+async function loadLoginAttempts() {
+  const userId = document.getElementById('loginAttemptUserId').value.trim();
+  if (!userId) return;
+  showSpinner();
+  try {
+    const { ok, data } = await api('GET', `/api/admin/login-attempts/${userId}`);
+    if (ok && data.attempts) {
+      document.getElementById('loginAttemptsTable').innerHTML = renderTable(
+        ['IP', 'Dispositivo', 'Exitoso', 'Motivo Fallo', 'Fecha'],
+        data.attempts.map(a => [a.ip||'—', a.dispositivo||'—', a.exitoso?'✅':'❌', a.motivo_fallo||'—', formatDate(a.timestamp)])
+      );
+    }
+  } catch(e) {} finally { hideSpinner(); }
+}
+
+async function loadLoginAttemptsByIp() {
+  const ip = document.getElementById('loginAttemptUserId').value.trim();
+  if (!ip) return;
+  showSpinner();
+  try {
+    const { ok, data } = await api('GET', `/api/admin/login-attempts-ip/${encodeURIComponent(ip)}`);
+    if (ok && data.attempts) {
+      document.getElementById('loginAttemptsTable').innerHTML = renderTable(
+        ['Usuario', 'Dispositivo', 'Exitoso', 'Fecha'],
+        data.attempts.map(a => [a.user_id||'—', a.dispositivo||'—', a.exitoso?'✅':'❌', formatDate(a.timestamp)])
+      );
+    }
+  } catch(e) {} finally { hideSpinner(); }
+}
+
+function renderTable(headers, rows) {
+  if (!rows || !rows.length) return '<div class="text-muted-custom">Sin datos para mostrar.</div>';
+  return `<div class="card-custom" style="padding:0;overflow:hidden;overflow-x:auto;">
+    <table class="table-custom">
+      <thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+      <tbody>${rows.map(r => `<tr>${r.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}</tbody>
+    </table></div>`;
+}
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+document.getElementById('menuToggle').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('open');
+});
+
+// Initialize — show auth page
+showPage('page-auth');
+</script>
+</body>
+</html>
