@@ -205,6 +205,22 @@ const getTeacherCourses = async ({ teacherId }) => {
     return { courses };
 };
 
+const getSections = async ({ courseId, teacherId }) => {
+  const course = await Course.findById(courseId);
+
+  if (!course) {
+    throw new Error('Curso no encontrado.');
+  }
+
+  if (course.docente?.user_id?.toString() !== teacherId.toString()) {
+    throw new Error('No tienes permiso para ver las secciones de este curso.');
+  }
+
+  const sections = await Section.find({ courseId }).sort({ order: 1 });
+
+  return { sections };
+};
+
 // HU-19: Clonar un curso
 const cloneCourse = async ({ originalCourseId, teacherId, newCode, newName, newStartDate, newEndDate }) => {
     const originalCourse = await validateCourse(originalCourseId);
@@ -298,5 +314,6 @@ module.exports = {
     publishCourse,
     getEnrolledStudents,
     getTeacherCourses,
+    getSections,
     cloneCourse,
 };

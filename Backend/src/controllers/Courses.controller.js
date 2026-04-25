@@ -5,6 +5,7 @@ const {
   publishCourse,
   getEnrolledStudents,
   getTeacherCourses,
+  getSections,
   cloneCourse,
 } = require('../logic/Coursemanagement');
 
@@ -91,6 +92,24 @@ exports.getTeacherCourses = async (req, res) => {
     res.json(result);
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+exports.getSections = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const { teacherId } = req.query;
+
+    if (!courseId || !teacherId) {
+      return res.status(400).json({ message: 'courseId y teacherId son requeridos.' });
+    }
+
+    const result = await getSections({ courseId, teacherId });
+
+    res.status(200).json(result);
+  } catch (error) {
+    const status = error.message.includes('no encontrado') ? 404 : 500;
+    res.status(status).json({ message: error.message });
   }
 };
 

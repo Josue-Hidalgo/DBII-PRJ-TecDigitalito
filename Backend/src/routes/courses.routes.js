@@ -33,4 +33,6 @@ router.get('/teacher/:teacherId', getTeacherCourses);
 // HU-19 — Clonar un curso
 router.post('/:courseId/clone', cloneCourse);
 
+router.get('/:courseId/sections', coursesController.getSections);
+
 module.exports = router;

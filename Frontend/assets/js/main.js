@@ -277,7 +277,7 @@ async function saveCourse() {
       photoBase64: foto 
     });
     if (ok) {
-      showAlert('createCourseAlert', 'Â¡Curso creado exitosamente!', 'success');
+      showAlert('createCourseAlert', 'Curso creado exitosamente!', 'success');
       setTimeout(() => showPage('page-my-courses'), 1200);
     } else {
       showAlert('createCourseAlert', data.message || 'Error al crear el curso.', 'danger');
@@ -342,32 +342,54 @@ async function openCourseDetail(courseId) {
 
 async function publishCourse() {
   if (!currentCourseId) return;
+
+  const teacherId = currentUser.teacherId || currentUser._id || currentUser.user_id || currentUser.id;
+
   showSpinner();
   try {
-    const { ok, data } = await api('PATCH', `/api/courses/${currentCourseId}/publish`, {});
+    const { ok, data } = await api('PATCH', `/api/courses/${currentCourseId}/publish`, {
+      teacherId: teacherId
+    });
+
     if (ok) {
-      showAlert('courseDetailAlert', 'Â¡Curso publicado exitosamente!', 'success');
+      showAlert('courseDetailAlert', '¡Curso publicado exitosamente!', 'success');
       document.getElementById('btnPublish').style.display = 'none';
     } else {
       showAlert('courseDetailAlert', data.message || 'Error al publicar.', 'danger');
     }
-  } catch(e) { showAlert('courseDetailAlert', 'Error de conexiÃ³n.', 'danger'); } finally { hideSpinner(); }
+  } catch(e) {
+    showAlert('courseDetailAlert', 'Error de conexión.', 'danger');
+  } finally {
+    hideSpinner();
+  }
 }
 
 // ---- SECTIONS ----
 async function loadSections() {
   if (!currentCourseId) return;
+
+  const teacherId = currentUser.teacherId || currentUser._id || currentUser.user_id || currentUser.id;
+
   showSpinner();
+
   try {
-    const { ok, data } = await api('GET', `/api/enrollments/${currentCourseId}/content`);
+    const { ok, data } = await api(
+      'GET',
+      `/api/courses/${currentCourseId}/sections?teacherId=${teacherId}`
+    );
+
     if (ok && data.sections) {
       renderSections(data.sections);
     } else {
-      document.getElementById('sectionsList').innerHTML = '<div class="text-muted-custom">Sin secciones aÃºn. Â¡Agrega tu primera secciÃ³n!</div>';
+      document.getElementById('sectionsList').innerHTML =
+        '<div class="text-muted-custom">Sin secciones aún. ¡Agrega tu primera sección!</div>';
     }
   } catch(e) {
-    document.getElementById('sectionsList').innerHTML = '<div class="text-muted-custom">Error cargando secciones.</div>';
-  } finally { hideSpinner(); }
+    document.getElementById('sectionsList').innerHTML =
+      '<div class="text-muted-custom">Error cargando secciones.</div>';
+  } finally {
+    hideSpinner();
+  }
 }
 
 function renderSections(sections, parentId = null, depth = 0) {
@@ -420,23 +442,42 @@ function showAddSectionModal(parentId) {
 
 async function saveSection() {
   clearAlert('sectionModalAlert');
-  const titulo = document.getElementById('sectionTitle').value.trim();
-  const descripcion = document.getElementById('sectionDesc').value.trim();
-  const orden = parseInt(document.getElementById('sectionOrder').value) || 1;
-  const parent_section_id = document.getElementById('sectionParentId').value || null;
 
-  if (!titulo) return showAlert('sectionModalAlert', 'El título es obligatorio.', 'warning');
+  const title = document.getElementById('sectionTitle').value.trim();
+  const order = parseInt(document.getElementById('sectionOrder').value) || 1;
+  const parentSectionId = document.getElementById('sectionParentId').value || null;
+
+  const teacherId = currentUser.teacherId || currentUser._id || currentUser.user_id || currentUser.id;
+
+  if (!title) {
+    return showAlert('sectionModalAlert', 'El título es obligatorio.', 'warning');
+  }
+
+  if (!teacherId) {
+    return showAlert('sectionModalAlert', 'No se encontró el teacherId. Vuelve a iniciar sesión.', 'danger');
+  }
 
   showSpinner();
+
   try {
-    const { ok, data } = await api('POST', `/api/courses/${currentCourseId}/sections`, { titulo, descripcion, parent_section_id, orden });
+    const { ok, data } = await api('POST', `/api/courses/${currentCourseId}/sections`, {
+      teacherId: teacherId,
+      title: title,
+      parentSectionId: parentSectionId,
+      order: order
+    });
+
     if (ok) {
       bootstrap.Modal.getInstance(document.getElementById('modalSection')).hide();
       loadSections();
     } else {
-      showAlert('sectionModalAlert', data.message || 'Error al crear la secciÃ³n.', 'danger');
+      showAlert('sectionModalAlert', data.message || 'Error al crear la sección.', 'danger');
     }
-  } catch(e) { showAlert('sectionModalAlert', 'Error de conexiÃ³n.', 'danger'); } finally { hideSpinner(); }
+  } catch(e) {
+    showAlert('sectionModalAlert', 'Error de conexión.', 'danger');
+  } finally {
+    hideSpinner();
+  }
 }
 
 // ---- CONTENT ----
