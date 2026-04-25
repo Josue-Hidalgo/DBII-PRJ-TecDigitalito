@@ -48,7 +48,7 @@ function getInitials(name) {
 }
 
 function formatDate(d) {
-  if (!d) return 'â\x80\x94';
+  if (!d) return '—';
   return new Date(d).toLocaleDateString('es-CR', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
@@ -95,7 +95,7 @@ function showPage(id) {
 }
 
 // ===============================================
-//  AUTH â\x80\x94 TAB SWITCH
+//  AUTH — TAB SWITCH
 // ===============================================
 function switchAuthTab(tab) {
   document.getElementById('tab-login').classList.toggle('active', tab === 'login');
@@ -106,7 +106,7 @@ function switchAuthTab(tab) {
 }
 
 // ===============================================
-//  AUTH â\x80\x94 LOGIN
+//  AUTH — LOGIN
 // ===============================================
 async function doLogin() {
   clearAlert('auth-alert');
@@ -131,7 +131,7 @@ async function doLogin() {
 }
 
 // ===============================================
-//  AUTH â\x80\x94 REGISTER
+//  AUTH — REGISTER
 // ===============================================
 async function doRegister() {
   clearAlert('auth-alert');
@@ -151,7 +151,7 @@ async function doRegister() {
   try {
     const { ok, data } = await api('POST', '/api/auth/register', { fullName, username, email, birthDate, password, photoBase64 });
     if (ok) {
-      showAlert('auth-alert', 'Â¡Cuenta creada exitosamente! Ahora inicia sesión.', 'success');
+      showAlert('auth-alert', '¡Cuenta creada exitosamente! Ahora inicia sesión.', 'success');
       switchAuthTab('login');
     } else {
       showAlert('auth-alert', data.message || 'Error al registrar. Intenta de nuevo.', 'danger');
@@ -162,7 +162,7 @@ async function doRegister() {
 }
 
 // ===============================================
-//  AUTH â\x80\x94 FORGOT PASSWORD
+//  AUTH — FORGOT PASSWORD
 // ===============================================
 async function doForgotPassword() {
   clearAlert('forgot-alert');
@@ -173,12 +173,12 @@ async function doForgotPassword() {
   try {
     const { ok, data } = await api('POST', '/api/password/forgot', { email });
     if (ok) {
-      showAlert('forgot-alert', 'Se ha enviado un enlace de recuperaciÃ³n a tu correo.', 'success');
+      showAlert('forgot-alert', 'Se ha enviado un enlace de recuperación a tu correo.', 'success');
     } else {
       showAlert('forgot-alert', data.message || 'Error al enviar el correo.', 'danger');
     }
   } catch(e) {
-    showAlert('forgot-alert', 'Error de conexiÃ³n.', 'danger');
+    showAlert('forgot-alert', 'Error de conexión.', 'danger');
   } finally { hideSpinner(); }
 }
 
@@ -242,7 +242,7 @@ async function loadHome() {
       document.getElementById('statEnrolled').textContent = data.enrollments.length;
       const html = data.enrollments.slice(0,3).map(e => `
         <div class="d-flex align-items-center gap-3 py-2" style="border-bottom:1px solid var(--border);">
-          <div style="width:36px;height:36px;background:var(--surface2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px;">ð\x9f\x93\x9a</div>
+          <div style="width:36px;height:36px;background:var(--surface2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px;">📚</div>
           <div style="flex:1;"><div style="font-size:13px;font-weight:600;">${e.nombre||e.course_id}</div><div style="font-size:11px;color:var(--text-muted);">${e.estado||'activo'}</div></div>
         </div>`).join('') || '<div class="text-muted-custom">Sin matrÃ\xadculas</div>';
       document.getElementById('homeEnrolledCourses').innerHTML = html;
@@ -294,7 +294,7 @@ async function loadMyCourses() {
     const { ok, data } = await api('GET', `/api/courses/teacher/${currentUser._id || currentUser.user_id}`);
     if (ok && data.courses) {
       if (!data.courses.length) {
-        document.getElementById('myCoursesGrid').innerHTML = '<div class="text-muted-custom">No has creado ningÃºn curso aÃºn. Â¡Crea tu primer curso!</div>';
+        document.getElementById('myCoursesGrid').innerHTML = '<div class="text-muted-custom">No has creado ningún curso aún. ¡Crea tu primer curso!</div>';
         return;
       }
       document.getElementById('myCoursesGrid').innerHTML = data.courses.map(c => renderCourseCard(c, true)).join('');
@@ -395,7 +395,7 @@ async function loadSections() {
 function renderSections(sections, parentId = null, depth = 0) {
   const children = sections.filter(s => (s.parent_section_id || null) === parentId);
   if (!children.length && depth === 0) {
-    document.getElementById('sectionsList').innerHTML = '<div class="text-muted-custom">Sin secciones aÃºn.</div>';
+      document.getElementById('sectionsList').innerHTML = '<div class="text-muted-custom">Sin secciones aún.</div>';
     return;
   }
   if (depth === 0) document.getElementById('sectionsList').innerHTML = '';
@@ -406,7 +406,7 @@ function renderSections(sections, parentId = null, depth = 0) {
     el.innerHTML = `<div class="section-header">
       <div><div class="section-title"><i class="bi bi-folder2" style="margin-right:8px;color:var(--accent);"></i>${s.titulo}</div>${s.descripcion ? `<div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${s.descripcion}</div>` : ''}</div>
       <div class="section-actions">
-        <button class="btn-outline-custom" style="padding:5px 10px;font-size:11px;" onclick="showAddSectionModal('${sId}')"><i class="bi bi-plus"></i> SubsecciÃ³n</button>
+        <button class="btn-outline-custom" style="padding:5px 10px;font-size:11px;" onclick="showAddSectionModal('${sId}')"><i class="bi bi-plus"></i> Subsección</button>
         <button class="btn-outline-custom" style="padding:5px 10px;font-size:11px;" onclick="showAddContentModal('${sId}')"><i class="bi bi-file-plus"></i> Contenido</button>
       </div>
     </div>`;
@@ -572,11 +572,11 @@ function addQuestion() {
   </div>
   <div class="mb-2"><input type="text" class="form-control" placeholder="Enunciado de la pregunta *" id="q${qn}-text"/></div>
   <div id="q${qn}-options">
-    <div class="option-row"><input type="radio" name="q${qn}-correct" class="option-radio" value="0"/><input type="text" class="form-control" placeholder="OpciÃ³n A"/></div>
-    <div class="option-row"><input type="radio" name="q${qn}-correct" class="option-radio" value="1"/><input type="text" class="form-control" placeholder="OpciÃ³n B"/></div>
+    <div class="option-row"><input type="radio" name="q${qn}-correct" class="option-radio" value="0"/><input type="text" class="form-control" placeholder="Opción A"/></div>
+    <div class="option-row"><input type="radio" name="q${qn}-correct" class="option-radio" value="1"/><input type="text" class="form-control" placeholder="Opción B"/></div>
   </div>
-  <button class="btn-outline-custom mt-2" style="padding:5px 12px;font-size:11px;" onclick="addOption(${qn})"><i class="bi bi-plus"></i> OpciÃ³n</button>
-  <div style="font-size:11px;color:var(--text-muted);margin-top:6px;"><i class="bi bi-info-circle"></i> Selecciona la respuesta correcta con el cÃ\xadrculo</div>`;
+  <button class="btn-outline-custom mt-2" style="padding:5px 12px;font-size:11px;" onclick="addOption(${qn})"><i class="bi bi-plus"></i> Opción</button>
+  <div style="font-size:11px;color:var(--text-muted);margin-top:6px;"><i class="bi bi-info-circle"></i> Selecciona la respuesta correcta con el círculo</div>`;
   document.getElementById('questionsContainer').appendChild(div);
 }
 
@@ -585,7 +585,7 @@ function addOption(qn) {
   const count = container.querySelectorAll('.option-row').length;
   const div = document.createElement('div');
   div.className = 'option-row';
-  div.innerHTML = `<input type="radio" name="q${qn}-correct" class="option-radio" value="${count}"/><input type="text" class="form-control" placeholder="OpciÃ³n ${String.fromCharCode(65+count)}"/>`;
+  div.innerHTML = `<input type="radio" name="q${qn}-correct" class="option-radio" value="${count}"/><input type="text" class="form-control" placeholder="Opción ${String.fromCharCode(65+count)}"/>`;
   container.appendChild(div);
 }
 
@@ -626,7 +626,7 @@ async function saveEvaluation() {
     const { ok, data } = await api('POST', '/api/evaluations', { course_id: currentCourseId, titulo, descripcion, fecha_inicio, fecha_fin, preguntas });
     if (ok) {
       bootstrap.Modal.getInstance(document.getElementById('modalEvaluation')).hide();
-      showAlert('courseDetailAlert', 'Â¡Evaluación creada!', 'success');
+      showAlert('courseDetailAlert', '¡Evaluación creada!', 'success');
     } else {
       showAlert('evalModalAlert', data.message || 'Error al crear evaluación.', 'danger');
     }
@@ -641,15 +641,15 @@ async function loadStudentsList() {
     const { ok, data } = await api('GET', `/api/courses/${currentCourseId}/students`);
     if (ok && data.students) {
       if (!data.students.length) {
-        document.getElementById('studentsList').innerHTML = '<div class="text-muted-custom">No hay estudiantes matriculados aÃºn.</div>';
+        document.getElementById('studentsList').innerHTML = '<div class="text-muted-custom">No hay estudiantes matriculados aún.</div>';
         return;
       }
       document.getElementById('studentsList').innerHTML = `<div class="card-custom" style="padding:0;overflow:hidden;">
         <table class="table-custom">
-          <thead><tr><th>Nombre</th><th>Usuario</th><th>Fecha MatrÃ\xadcula</th><th>Estado</th></tr></thead>
+          <thead><tr><th>Nombre</th><th>Usuario</th><th>Fecha Matrícula</th><th>Estado</th></tr></thead>
           <tbody>${data.students.map(s => `<tr>
-            <td><div class="d-flex align-items-center gap-2"><div class="friend-avatar" style="width:32px;height:32px;font-size:12px;">${getInitials(s.nombre_completo||s.username)}</div>${s.nombre_completo||'â\x80\x94'}</div></td>
-            <td class="mono" style="color:var(--accent);font-size:12px;">@${s.username||'â\x80\x94'}</td>
+            <td><div class="d-flex align-items-center gap-2"><div class="friend-avatar" style="width:32px;height:32px;font-size:12px;">${getInitials(s.nombre_completo||s.username)}</div>${s.nombre_completo||'—'}</div></td>
+            <td class="mono" style="color:var(--accent);font-size:12px;">@${s.username||'—'}</td>
             <td>${formatDate(s.fecha)}</td>
             <td><span class="course-card-badge badge-active">${s.estado||'activo'}</span></td>
           </tr>`).join('')}</tbody>
@@ -676,7 +676,7 @@ async function loadCourseThreads() {
             <div style="font-size:11px;font-family:var(--font-mono);color:var(--text-muted);">${formatDate(t.fecha)}</div>
           </div>
           <div class="mt-3">
-            <textarea class="form-control mb-2" id="reply-${t._id}" rows="2" placeholder="Responde aquÃ\xad..."></textarea>
+            <textarea class="form-control mb-2" id="reply-${t._id}" rows="2" placeholder="Responde aquí..."></textarea>
             <button class="btn-outline-custom" style="padding:6px 14px;font-size:12px;" onclick="replyToThread('${t._id}')"><i class="bi bi-reply"></i> Responder</button>
           </div>
         </div>`).join('');
@@ -746,11 +746,7 @@ async function doClone() {
     } else {
       showAlert('cloneAlert', data.message || 'Error al clonar.', 'danger');
     }
-  } catch(e) {
-    showAlert('cloneAlert', 'Error de conexión.', 'danger');
-  } finally {
-    hideSpinner();
-  }
+  } catch(e) { showAlert('cloneAlert', 'Error de conexiÃ³n.', 'danger'); } finally { hideSpinner(); }
 }
 
 // ===============================================
@@ -783,7 +779,7 @@ async function searchCourses() {
     } else {
       showAlert('searchAlert', data.message || 'Error al buscar cursos.', 'danger');
     }
-  } catch(e) { showAlert('searchAlert', 'Error de conexiÃ³n.', 'danger'); } finally { hideSpinner(); }
+  } catch(e) { showAlert('searchAlert', 'Error de conexión.', 'danger'); } finally { hideSpinner(); }
 }
 
 async function enrollCourse(courseId) {
@@ -791,11 +787,11 @@ async function enrollCourse(courseId) {
   try {
     const { ok, data } = await api('POST', '/api/enrollments', { user_id: currentUser._id || currentUser.user_id, course_id: courseId });
     if (ok) {
-      showAlert('searchAlert', 'Â¡Te has matriculado exitosamente!', 'success');
+      showAlert('searchAlert', '¡Te has matriculado exitosamente!', 'success');
     } else {
       showAlert('searchAlert', data.message || 'Error al matricularse.', 'danger');
     }
-  } catch(e) { showAlert('searchAlert', 'Error de conexiÃ³n.', 'danger'); } finally { hideSpinner(); }
+  } catch(e) { showAlert('searchAlert', 'Error de conexión.', 'danger'); } finally { hideSpinner(); }
 }
 
 // ===============================================
@@ -808,7 +804,7 @@ async function loadEnrolledCourses() {
     const { ok, data } = await api('GET', `/api/enrollments/student/${currentUser._id || currentUser.user_id}`);
     if (ok && data.enrollments) {
       if (!data.enrollments.length) {
-        document.getElementById('enrolledGrid').innerHTML = '<div class="text-muted-custom">No estÃ¡s matriculado en ningÃºn curso. Â¡Explora los cursos disponibles!</div>';
+        document.getElementById('enrolledGrid').innerHTML = '<div class="text-muted-custom">No estás matriculado en ningún curso. ¡Explora los cursos disponibles!</div>';
         return;
       }
       document.getElementById('enrolledGrid').innerHTML = data.enrollments.map(e => renderCourseCard(e, false)).join('');
@@ -842,7 +838,7 @@ async function loadStudentContent() {
     const { ok, data } = await api('GET', `/api/enrollments/${currentStudentCourseId}/content`);
     if (ok && data.sections) {
       if (!data.sections.length) {
-        document.getElementById('studentSections').innerHTML = '<div class="text-muted-custom">Este curso aÃºn no tiene contenido.</div>';
+        document.getElementById('studentSections').innerHTML = '<div class="text-muted-custom">Este curso aún no tiene contenido.</div>';
         return;
       }
       document.getElementById('studentSections').innerHTML = data.sections.filter(s => !s.parent_section_id).map(s => renderStudentSection(s, data.sections)).join('');
@@ -873,11 +869,11 @@ async function loadStudentEvals() {
       const results = data.submissions || [];
       document.getElementById('studentEvals').innerHTML = results.length
         ? `<div style="margin-bottom:16px;font-weight:600;">Resultados de Evaluaciones</div>
-          <table class="table-custom" style="background:var(--surface);border-radius:var(--radius);"><thead><tr><th>EvaluaciÃ³n</th><th>Fecha</th><th>CalificaciÃ³n</th><th>Correctas</th></tr></thead>
-          <tbody>${results.map(r => `<tr><td>${r.evaluation_id||'â\x80\x94'}</td><td>${formatDate(r.fecha)}</td>
+          <table class="table-custom" style="background:var(--surface);border-radius:var(--radius);"><thead><tr><th>Evaluación</th><th>Fecha</th><th>Calificación</th><th>Correctas</th></tr></thead>
+          <tbody>${results.map(r => `<tr><td>${r.evaluation_id||'—'}</td><td>${formatDate(r.fecha)}</td>
           <td style="color:${r.calificacion>=70?'var(--accent)':'var(--danger)'}; font-weight:700;">${r.calificacion?.toFixed(1)||0}%</td>
           <td>${r.correctas||0}/${r.total_preguntas||0}</td></tr>`).join('')}</tbody></table>`
-        : '<div class="text-muted-custom">No has realizado evaluaciones aÃºn.</div>';
+        : '<div class="text-muted-custom">No has realizado evaluaciones aún.</div>';
     }
   } catch(e) {}
 }
@@ -891,9 +887,9 @@ async function loadClassmates() {
       document.getElementById('classmatesList').innerHTML = data.classmates.length
         ? data.classmates.map(u => `<div class="friend-card">
             <div class="friend-avatar">${getInitials(u.nombre||u.username)}</div>
-            <div><div class="friend-name">${u.nombre||u.nombre_completo||'â\x80\x94'}</div><div class="friend-username">@${u.username||'â\x80\x94'}</div></div>
+            <div><div class="friend-name">${u.nombre||u.nombre_completo||'—'}</div><div class="friend-username">@${u.username||'—'}</div></div>
           </div>`).join('')
-        : '<div class="text-muted-custom">No hay otros compaÃ±eros en este curso.</div>';
+        : '<div class="text-muted-custom">No hay otros compañeros en este curso.</div>';
     }
   } catch(e) {} finally { hideSpinner(); }
 }
@@ -932,7 +928,7 @@ async function sendQuery() {
 }
 
 // ===============================================
-//  SOCIAL â\x80\x94 FRIENDS
+//  SOCIAL — FRIENDS
 // ===============================================
 async function searchUsers() {
   const q = document.getElementById('searchUserQuery').value.trim();
@@ -1070,7 +1066,7 @@ async function viewFriendCourses(friendId, friendName) {
         ? `<table class="table-custom"><thead><tr><th>Rol</th><th>Código</th><th>Nombre</th><th>Estado</th></tr></thead>
           <tbody>${data.courses.map(c => `<tr>
             <td><span class="course-card-badge ${c.rol==='TEACHES'?'badge-published':'badge-active'}">${c.rol==='TEACHES'?'Docente':'Estudiante'}</span></td>
-            <td class="mono" style="font-size:12px;">${c.codigo||'â\x80\x94'}</td><td>${c.nombre||'â\x80\x94'}</td>
+            <td class="mono" style="font-size:12px;">${c.codigo||'—'}</td><td>${c.nombre||'—'}</td>
             <td><span class="course-card-badge badge-${c.estado==='activo'?'active':'ended'}">${c.estado}</span></td>
           </tr>`).join('')}</tbody></table>`
         : '<div class="text-muted-custom">Este usuario no tiene cursos.</div>';
@@ -1144,7 +1140,7 @@ async function loadConversations() {
       document.getElementById('conversationsList').innerHTML = data.conversations.length
         ? data.conversations.map(c => `<div class="friend-card" onclick="openConversation('${c.user_id||c._id}','${c.username||''}')">
             <div class="friend-avatar" style="width:36px;height:36px;font-size:13px;">${getInitials(c.username||'?')}</div>
-            <div style="flex:1;min-width:0;"><div class="friend-name" style="font-size:13px;">${c.username||'â\x80\x94'}</div><div class="friend-username" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.preview||''}</div></div>
+            <div style="flex:1;min-width:0;"><div class="friend-name" style="font-size:13px;">${c.username||'—'}</div><div class="friend-username" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.preview||''}</div></div>
           </div>`).join('')
         : '<div class="text-muted-custom" style="font-size:13px;">Sin conversaciones</div>';
       document.getElementById('statMessages').textContent = data.conversations.length;
@@ -1176,7 +1172,7 @@ async function loadDirectMessages() {
           <div class="message-bubble ${isSent ? 'sent' : 'received'}">${m.contenido}</div>
           <div class="message-meta" style="${isSent ? 'text-align:right;' : ''}">${formatDate(m.fecha)}</div>
         </div>`;
-      }).join('') || '<div class="text-muted-custom" style="text-align:center;margin-top:40px;">Inicia la conversaciÃ³n</div>';
+      }).join('') || '<div class="text-muted-custom" style="text-align:center;margin-top:40px;">Inicia la conversación</div>';
       win.scrollTop = win.scrollHeight;
     }
   } catch(e) {}
@@ -1222,7 +1218,7 @@ async function changePassword() {
       current_password, new_password
     });
     if (ok) {
-      showAlert('pwChangeAlert', 'Â¡Contraseña actualizada exitosamente!', 'success');
+      showAlert('pwChangeAlert', '¡Contraseña actualizada exitosamente!', 'success');
       document.getElementById('pwCurrent').value = '';
       document.getElementById('pwNew').value = '';
       document.getElementById('pwConfirm').value = '';
@@ -1287,8 +1283,8 @@ async function loadUserActivity() {
     const { ok, data } = await api('GET', `/api/admin/activity/${userId}`);
     if (ok && data.events) {
       document.getElementById('activityTable').innerHTML = renderTable(
-        ['AcciÃ³n', 'Entidad', 'Resultado', 'IP', 'Fecha'],
-        data.events.map(e => [e.accion||'â\x80\x94', e.entidad||'â\x80\x94', e.resultado||'â\x80\x94', e.ip||'â\x80\x94', formatDate(e.timestamp)])
+        ['Acción', 'Entidad', 'Resultado', 'IP', 'Fecha'],
+        data.events.map(e => [e.accion||'—', e.entidad||'—', e.resultado||'—', e.ip||'—', formatDate(e.timestamp)])
       );
     }
   } catch(e) {} finally { hideSpinner(); }
@@ -1315,8 +1311,8 @@ async function loadAuditTrail() {
     const { ok, data } = await api('GET', `/api/admin/audit/${table}`);
     if (ok && data.logs) {
       document.getElementById('auditTrailTable').innerHTML = renderTable(
-        ['Usuario', 'AcciÃ³n', 'Entidad', 'Resultado', 'IP', 'Fecha'],
-        data.logs.map(l => [l.user_id||'â\x80\x94', l.accion||'â\x80\x94', l.entidad||'â\x80\x94', l.resultado||'â\x80\x94', l.ip||'â\x80\x94', formatDate(l.timestamp)])
+        ['Usuario', 'Acción', 'Entidad', 'Resultado', 'IP', 'Fecha'],
+        data.logs.map(l => [l.user_id||'—', l.accion||'—', l.entidad||'—', l.resultado||'—', l.ip||'—', formatDate(l.timestamp)])
       );
     }
   } catch(e) {} finally { hideSpinner(); }
