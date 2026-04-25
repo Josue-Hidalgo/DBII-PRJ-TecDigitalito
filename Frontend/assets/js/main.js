@@ -712,23 +712,45 @@ function showCloneModal() {
 
 async function doClone() {
   clearAlert('cloneAlert');
-  const codigo = document.getElementById('cloneCode').value.trim();
-  const nombre = document.getElementById('cloneName').value.trim();
-  const fecha_inicio = document.getElementById('cloneStart').value;
-  const fecha_fin = document.getElementById('cloneEnd').value || null;
-  if (!codigo || !nombre || !fecha_inicio) return showAlert('cloneAlert', 'Completa todos los campos obligatorios.', 'warning');
+
+  const newCode = document.getElementById('cloneCode').value.trim();
+  const newName = document.getElementById('cloneName').value.trim();
+  const newStartDate = document.getElementById('cloneStart').value;
+  const newEndDate = document.getElementById('cloneEnd').value || null;
+
+  const teacherId = currentUser.teacherId || currentUser._id || currentUser.user_id || currentUser.id;
+
+  if (!newCode || !newName || !newStartDate) {
+    return showAlert('cloneAlert', 'Completa todos los campos obligatorios.', 'warning');
+  }
+
+  if (!teacherId) {
+    return showAlert('cloneAlert', 'No se encontró el teacherId. Vuelve a iniciar sesión.', 'danger');
+  }
 
   showSpinner();
+
   try {
-    const { ok, data } = await api('POST', `/api/courses/${currentCourseId}/clone`, { codigo, nombre, fecha_inicio, fecha_fin });
+    const { ok, data } = await api('POST', `/api/courses/${currentCourseId}/clone`, {
+      teacherId: teacherId,
+      newCode: newCode,
+      newName: newName,
+      newStartDate: newStartDate,
+      newEndDate: newEndDate
+    });
+
     if (ok) {
       bootstrap.Modal.getInstance(document.getElementById('modalClone')).hide();
-      showAlert('courseDetailAlert', 'Â¡Curso clonado exitosamente!', 'success');
+      showAlert('courseDetailAlert', '¡Curso clonado exitosamente!', 'success');
       setTimeout(() => showPage('page-my-courses'), 1200);
     } else {
       showAlert('cloneAlert', data.message || 'Error al clonar.', 'danger');
     }
-  } catch(e) { showAlert('cloneAlert', 'Error de conexiÃ³n.', 'danger'); } finally { hideSpinner(); }
+  } catch(e) {
+    showAlert('cloneAlert', 'Error de conexión.', 'danger');
+  } finally {
+    hideSpinner();
+  }
 }
 
 // ===============================================
@@ -915,50 +937,128 @@ async function sendQuery() {
 async function searchUsers() {
   const q = document.getElementById('searchUserQuery').value.trim();
   if (!q) return;
+
   showSpinner();
+
   try {
     const { ok, data } = await api('GET', `/api/social/users/search?q=${encodeURIComponent(q)}`);
+
     if (ok && data.users) {
       document.getElementById('userSearchResults').innerHTML = data.users.length
-        ? data.users.map(u => `<div class="friend-card">
-            <div class="friend-avatar">${getInitials(u.nombre||u.nombre_completo||u.username)}</div>
-            <div style="flex:1;"><div class="friend-name">${u.nombre||u.nombre_completo||'â\x80\x94'}</div><div class="friend-username">@${u.username}</div></div>
-            <button class="btn-outline-custom" style="padding:5px 12px;font-size:11px;" onclick="sendFriendRequest('${u.user_id||u._id}')"><i class="bi bi-person-plus"></i></button>
-          </div>`).join('')
+        ? data.users.map(u => {
+            const userId = u.userId || u.user_id || u._id || u.id;
+            const name = u.fullName || u.nombre || u.nombre_completo || u.username || '—';
+
+            return `<div class="friend-card">
+              <div class="friend-avatar">${getInitials(name)}</div>
+              <div style="flex:1;">
+                <div class="friend-name">${name}</div>
+                <div class="friend-username">@${u.username || '—'}</div>
+              </div>
+              <button class="btn-outline-custom" style="padding:5px 12px;font-size:11px;" onclick="sendFriendRequest('${userId}')">
+                <i class="bi bi-person-plus"></i>
+              </button>
+            </div>`;
+          }).join('')
         : '<div class="text-muted-custom">No se encontraron usuarios.</div>';
     }
-  } catch(e) {} finally { hideSpinner(); }
+  } catch(e) {
+    console.error(e);
+  } finally {
+    hideSpinner();
+  }
 }
 
 async function sendFriendRequest(userId) {
+  const requesterId = currentUser._id || currentUser.user_id || currentUser.id;
+  const targetId = userId;
+
+  if (!requesterId || !targetId || targetId === 'undefined') {
+    return alert('No se encontró el usuario actual o el usuario destino.');
+  }
+
   showSpinner();
+
   try {
-    const { ok, data } = await api('POST', '/api/social/friends/request', { requester_id: currentUser._id || currentUser.user_id, requested_id: userId });
+    const { ok, data } = await api('POST', '/api/social/friends/request', {
+      requesterId: requesterId,
+      targetId: targetId
+    });
+
     if (ok) alert('Solicitud de amistad enviada.');
     else alert(data.message || 'Error al enviar solicitud.');
-  } catch(e) {} finally { hideSpinner(); }
+  } catch(e) {
+    alert('Error de conexión.');
+  } finally {
+    hideSpinner();
+  }
+}
+
+function renderPendingRequests(requests) {
+  const container = document.getElementById('friendRequestsList');
+  if (!container) return;
+
+  container.innerHTML = requests.length
+    ? requests.map(r => {
+        const requesterId = r.userId || r.user_id || r._id || r.id;
+        const name = r.fullName || r.nombre || r.nombre_completo || r.username || '—';
+
+        return `<div class="friend-card">
+          <div class="friend-avatar">${getInitials(name)}</div>
+          <div style="flex:1;">
+            <div class="friend-name">${name}</div>
+            <div class="friend-username">@${r.username || '—'}</div>
+          </div>
+          <div class="d-flex gap-2">
+            <button class="btn-outline-custom" onclick="respondFriendRequest('${requesterId}', 'accept')">Aceptar</button>
+            <button class="btn-outline-custom" onclick="respondFriendRequest('${requesterId}', 'reject')">Rechazar</button>
+          </div>
+        </div>`;
+      }).join('')
+    : '<div class="text-muted-custom">No tienes solicitudes pendientes.</div>';
 }
 
 async function loadFriends() {
   if (!currentUser) return;
+
+  const userId = currentUser._id || currentUser.user_id || currentUser.id;
+
   showSpinner();
+
   try {
-    const { ok, data } = await api('GET', `/api/social/friends/${currentUser._id || currentUser.user_id}`);
+    const { ok, data } = await api('GET', `/api/social/friends/${userId}`);
+
     if (ok && data.friends) {
+      renderPendingRequests(data.pendingRequests || []);
+
       document.getElementById('friendsList').innerHTML = data.friends.length
-        ? data.friends.map(f => `<div class="friend-card">
-            <div class="friend-avatar">${getInitials(f.nombre||f.nombre_completo||f.username)}</div>
-            <div style="flex:1;"><div class="friend-name">${f.nombre||f.nombre_completo||'â\x80\x94'}</div><div class="friend-username">@${f.username||'â\x80\x94'}</div></div>
-            <div class="d-flex gap-2">
-              <button class="btn-outline-custom" style="padding:5px 10px;font-size:11px;" onclick="viewFriendCourses('${f.user_id||f._id}','${f.nombre||f.username}')"><i class="bi bi-mortarboard"></i></button>
-              <button class="btn-outline-custom" style="padding:5px 10px;font-size:11px;" onclick="openConversation('${f.user_id||f._id}','${f.nombre||f.username}')"><i class="bi bi-chat"></i></button>
-            </div>
-          </div>`).join('')
+        ? data.friends.map(f => {
+            const friendId = f.userId || f.user_id || f._id || f.id;
+            const name = f.fullName || f.nombre || f.nombre_completo || f.username || '—';
+
+            return `<div class="friend-card">
+              <div class="friend-avatar">${getInitials(name)}</div>
+              <div style="flex:1;">
+                <div class="friend-name">${name}</div>
+                <div class="friend-username">@${f.username || '—'}</div>
+              </div>
+              <div class="d-flex gap-2">
+                <button class="btn-outline-custom" style="padding:5px 10px;font-size:11px;" onclick="viewFriendCourses('${friendId}','${name}')"><i class="bi bi-mortarboard"></i></button>
+                <button class="btn-outline-custom" style="padding:5px 10px;font-size:11px;" onclick="openConversation('${friendId}','${name}')"><i class="bi bi-chat"></i></button>
+              </div>
+            </div>`;
+          }).join('')
         : '<div class="text-muted-custom">No tienes amigos aún. ¡Busca y agrega compañeros!</div>';
+
       document.getElementById('statFriends').textContent = data.friends.length;
     }
-  } catch(e) {} finally { hideSpinner(); }
+  } catch (e) {
+    console.error(e);
+  } finally {
+    hideSpinner();
+  }
 }
+  
 
 async function viewFriendCourses(friendId, friendName) {
   showSpinner();
@@ -977,6 +1077,59 @@ async function viewFriendCourses(friendId, friendName) {
       new bootstrap.Modal(document.getElementById('modalFriendCourses')).show();
     }
   } catch(e) {} finally { hideSpinner(); }
+}
+
+function renderPendingRequests(requests) {
+  const container = document.getElementById('friendRequestsList');
+
+  if (!container) return;
+
+  container.innerHTML = requests.length
+    ? requests.map(r => {
+        const requesterId = r.userId || r.user_id || r._id || r.id;
+        const name = r.fullName || r.nombre || r.nombre_completo || r.username || '—';
+
+        return `<div class="friend-card">
+          <div class="friend-avatar">${getInitials(name)}</div>
+          <div style="flex:1;">
+            <div class="friend-name">${name}</div>
+            <div class="friend-username">@${r.username || '—'}</div>
+          </div>
+          <div class="d-flex gap-2">
+            <button class="btn-outline-custom" onclick="respondFriendRequest('${requesterId}', 'accept')">Aceptar</button>
+            <button class="btn-outline-custom" onclick="respondFriendRequest('${requesterId}', 'reject')">Rechazar</button>
+          </div>
+        </div>`;
+      }).join('')
+    : '<div class="text-muted-custom">No tienes solicitudes pendientes.</div>';
+}
+
+async function respondFriendRequest(requesterId, action) {
+  const userId = currentUser._id || currentUser.user_id || currentUser.id;
+
+  if (!requesterId || requesterId === 'undefined' || !userId) {
+    return alert('No se encontró la solicitud o el usuario actual.');
+  }
+
+  showSpinner();
+
+  try {
+    const { ok, data } = await api('PATCH', `/api/social/friends/request/${requesterId}`, {
+      userId: userId,
+      action: action
+    });
+
+    if (ok) {
+      alert(action === 'accept' ? 'Solicitud aceptada.' : 'Solicitud rechazada.');
+      loadFriends();
+    } else {
+      alert(data.message || 'Error al responder solicitud.');
+    }
+  } catch(e) {
+    alert('Error de conexión.');
+  } finally {
+    hideSpinner();
+  }
 }
 
 // ===============================================
