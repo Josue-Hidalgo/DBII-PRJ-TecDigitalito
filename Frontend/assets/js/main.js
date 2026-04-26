@@ -1075,30 +1075,7 @@ async function viewFriendCourses(friendId, friendName) {
   } catch(e) {} finally { hideSpinner(); }
 }
 
-function renderPendingRequests(requests) {
-  const container = document.getElementById('friendRequestsList');
 
-  if (!container) return;
-
-  container.innerHTML = requests.length
-    ? requests.map(r => {
-        const requesterId = r.userId || r.user_id || r._id || r.id;
-        const name = r.fullName || r.nombre || r.nombre_completo || r.username || '—';
-
-        return `<div class="friend-card">
-          <div class="friend-avatar">${getInitials(name)}</div>
-          <div style="flex:1;">
-            <div class="friend-name">${name}</div>
-            <div class="friend-username">@${r.username || '—'}</div>
-          </div>
-          <div class="d-flex gap-2">
-            <button class="btn-outline-custom" onclick="respondFriendRequest('${requesterId}', 'accept')">Aceptar</button>
-            <button class="btn-outline-custom" onclick="respondFriendRequest('${requesterId}', 'reject')">Rechazar</button>
-          </div>
-        </div>`;
-      }).join('')
-    : '<div class="text-muted-custom">No tienes solicitudes pendientes.</div>';
-}
 
 async function respondFriendRequest(requesterId, action) {
   const userId = currentUser._id || currentUser.user_id || currentUser.id;
@@ -1133,66 +1110,119 @@ async function respondFriendRequest(requesterId, action) {
 // ===============================================
 async function loadConversations() {
   if (!currentUser) return;
+
+  const userId = currentUser._id || currentUser.user_id || currentUser.id;
+
   showSpinner();
+
   try {
-    const { ok, data } = await api('GET', `/api/messages/conversations/${currentUser._id || currentUser.user_id}`);
+    const { ok, data } = await api('GET', `/api/messages/conversations/${userId}`);
+
     if (ok && data.conversations) {
       document.getElementById('conversationsList').innerHTML = data.conversations.length
-        ? data.conversations.map(c => `<div class="friend-card" onclick="openConversation('${c.user_id||c._id}','${c.username||''}')">
-            <div class="friend-avatar" style="width:36px;height:36px;font-size:13px;">${getInitials(c.username||'?')}</div>
-            <div style="flex:1;min-width:0;"><div class="friend-name" style="font-size:13px;">${c.username||'—'}</div><div class="friend-username" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.preview||''}</div></div>
-          </div>`).join('')
+        ? data.conversations.map(c => {
+            const otherUserId = c.userId || c.user_id || c._id || c.id;
+            const name = c.fullName || c.nombre || c.nombre_completo || c.username || '—';
+
+            return `<div class="friend-card" onclick="openConversation('${otherUserId}','${name}')">
+              <div class="friend-avatar" style="width:36px;height:36px;font-size:13px;">${getInitials(name)}</div>
+              <div style="flex:1;min-width:0;">
+                <div class="friend-name" style="font-size:13px;">${name}</div>
+                <div class="friend-username" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.preview || ''}</div>
+              </div>
+            </div>`;
+          }).join('')
         : '<div class="text-muted-custom" style="font-size:13px;">Sin conversaciones</div>';
+
       document.getElementById('statMessages').textContent = data.conversations.length;
     }
-  } catch(e) {} finally { hideSpinner(); }
+  } catch(e) {
+    console.error(e);
+  } finally {
+    hideSpinner();
+  }
 }
 
+
 async function openConversation(userId, name) {
+  if (!userId || userId === 'undefined') {
+    return alert('No se encontró el ID del usuario.');
+  }
+
+  if (userId.length < 20) {
+    return alert('Error: se está usando el username en lugar del ID del usuario.');
+  }
+
   currentChatUserId = userId;
+
   document.getElementById('chatWithName').textContent = name || userId;
   document.getElementById('chatWithId').textContent = userId;
   document.getElementById('chatAvatarInitial').textContent = getInitials(name || '?');
   document.getElementById('chatPanel').style.display = 'block';
   document.getElementById('chatPlaceholder').style.display = 'none';
-  if (document.getElementById('page-messages').classList.contains('active') === false) showPage('page-messages');
+
+  if (!document.getElementById('page-messages').classList.contains('active')) {
+    showPage('page-messages');
+  }
+
   await loadDirectMessages();
 }
 
 async function loadDirectMessages() {
   if (!currentChatUserId || !currentUser) return;
+
   try {
-    const myId = currentUser._id || currentUser.user_id;
+    const myId = currentUser._id || currentUser.user_id || currentUser.id;
+
     const { ok, data } = await api('GET', `/api/messages/direct/${myId}/${currentChatUserId}`);
+
     if (ok && data.messages) {
       const win = document.getElementById('chatMessages');
+
       win.innerHTML = data.messages.map(m => {
-        const isSent = m.sender_id === myId;
+        const isSent = m.senderId === myId;
+
         return `<div>
           <div class="message-bubble ${isSent ? 'sent' : 'received'}">${m.contenido}</div>
-          <div class="message-meta" style="${isSent ? 'text-align:right;' : ''}">${formatDate(m.fecha)}</div>
+          <div class="message-meta" style="${isSent ? 'text-align:right;' : ''}">${formatDate(m.sentAt)}</div>
         </div>`;
       }).join('') || '<div class="text-muted-custom" style="text-align:center;margin-top:40px;">Inicia la conversación</div>';
+
       win.scrollTop = win.scrollHeight;
     }
-  } catch(e) {}
+  } catch(e) {
+    console.error(e);
+  }
 }
 
 async function sendDirectMessage() {
-  const contenido = document.getElementById('msgInput').value.trim();
-  if (!contenido || !currentChatUserId) return;
+  const text = document.getElementById('msgInput').value.trim();
+  if (!text || !currentChatUserId) return;
+
+  const senderId = currentUser._id || currentUser.user_id || currentUser.id;
+  const recipientId = currentChatUserId;
+
   showSpinner();
+
   try {
-    const { ok } = await api('POST', '/api/messages/direct', {
-      sender_id: currentUser._id || currentUser.user_id,
-      receiver_id: currentChatUserId,
-      contenido
+    const { ok, data } = await api('POST', '/api/messages/direct', {
+      senderId: senderId,
+      recipientId: recipientId,
+      text: text
     });
+
     if (ok) {
       document.getElementById('msgInput').value = '';
       await loadDirectMessages();
+      await loadConversations();
+    } else {
+      alert(data.message || 'Error al enviar mensaje.');
     }
-  } catch(e) {} finally { hideSpinner(); }
+  } catch(e) {
+    alert('Error de conexión.');
+  } finally {
+    hideSpinner();
+  }
 }
 
 // ===============================================
