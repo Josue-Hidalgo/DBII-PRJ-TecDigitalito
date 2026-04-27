@@ -635,70 +635,246 @@ async function saveEvaluation() {
 
 // ---- STUDENTS LIST ----
 async function loadStudentsList() {
-  if (!currentCourseId) return;
+  if (!currentCourseId || !currentUser) return;
+
+  const studentsList = document.getElementById('studentsList');
+  if (!studentsList) return;
+
+  const teacherId = currentUser._id || currentUser.user_id || currentUser.id;
+
   showSpinner();
+
   try {
-    const { ok, data } = await api('GET', `/api/courses/${currentCourseId}/students`);
-    if (ok && data.students) {
-      if (!data.students.length) {
-        document.getElementById('studentsList').innerHTML = '<div class="text-muted-custom">No hay estudiantes matriculados aún.</div>';
-        return;
-      }
-      document.getElementById('studentsList').innerHTML = `<div class="card-custom" style="padding:0;overflow:hidden;">
-        <table class="table-custom">
-          <thead><tr><th>Nombre</th><th>Usuario</th><th>Fecha Matrícula</th><th>Estado</th></tr></thead>
-          <tbody>${data.students.map(s => `<tr>
-            <td><div class="d-flex align-items-center gap-2"><div class="friend-avatar" style="width:32px;height:32px;font-size:12px;">${getInitials(s.nombre_completo||s.username)}</div>${s.nombre_completo||'—'}</div></td>
-            <td class="mono" style="color:var(--accent);font-size:12px;">@${s.username||'—'}</td>
-            <td>${formatDate(s.fecha)}</td>
-            <td><span class="course-card-badge badge-active">${s.estado||'activo'}</span></td>
-          </tr>`).join('')}</tbody>
-        </table></div>`;
+    const { ok, data } = await api(
+      'GET',
+      `/api/courses/${currentCourseId}/students?teacherId=${teacherId}`
+    );
+
+    if (!ok) {
+      studentsList.innerHTML = `
+        <div class="text-muted-custom">
+          ${data.message || 'Error al cargar estudiantes.'}
+        </div>
+      `;
+      return;
     }
-  } catch(e) {} finally { hideSpinner(); }
+
+    if (!data.students || !data.students.length) {
+      studentsList.innerHTML =
+        '<div class="text-muted-custom">No hay estudiantes matriculados aún.</div>';
+      return;
+    }
+
+    studentsList.innerHTML = `
+      <div class="card-custom" style="padding:0;overflow:hidden;">
+        <table class="table-custom">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Usuario</th>
+              <th>Fecha Matrícula</th>
+              
+            </tr>
+          </thead>
+          <tbody>
+            ${data.students.map(s => {
+              const name = s.fullName || s.nombre_completo || s.username || '—';
+              const username = s.username || '—';
+              const date = s.enrolledAt || s.fecha;
+
+              return `
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="friend-avatar" style="width:32px;height:32px;font-size:12px;">
+                        ${getInitials(name)}
+                      </div>
+                      ${name}
+                    </div>
+                  </td>
+                  <td class="mono" style="color:var(--accent);font-size:12px;">
+                    @${username}
+                  </td>
+                  <td>${formatDate(date)}</td>
+                  <td>
+                    <span class="course-card-badge badge-active">activo</span>
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+  } catch (e) {
+    console.error(e);
+    studentsList.innerHTML =
+      '<div class="text-muted-custom">Error de conexión al cargar estudiantes.</div>';
+  } finally {
+    hideSpinner();
+  }
+}
+
+
+
+function escapeHtml(text) {
+  return String(text || '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
 }
 
 // ---- COURSE THREADS (TEACHER) ----
 async function loadCourseThreads() {
   if (!currentCourseId) return;
+
   showSpinner();
+
   try {
-    const { ok, data } = await api('GET', `/api/messages/course/${currentCourseId}/threads`);
-    if (ok && data.threads) {
-      if (!data.threads.length) {
-        document.getElementById('courseThreadsList').innerHTML = '<div class="text-muted-custom">Sin consultas de estudiantes.</div>';
-        return;
-      }
-      document.getElementById('courseThreadsList').innerHTML = data.threads.map(t => `
+    const userId = currentUser._id || currentUser.user_id || currentUser.id;
+
+    const { ok, data } = await api(
+      'GET',
+      `/api/messages/course/${currentCourseId}/threads?userId=${userId}`
+    );
+
+    if (!ok || !data.threads || data.threads.length === 0) {
+      document.getElementById('courseThreadsList').innerHTML =
+        '<div class="text-muted-custom">Sin consultas de estudiantes.</div>';
+      return;
+    }
+
+    document.getElementById('courseThreadsList').innerHTML = data.threads.map(t => {
+      const studentName =
+        t.student?.fullName ||
+        t.student?.nombre_completo ||
+        t.student?.username ||
+        'Estudiante';
+
+      const username = t.student?.username ? `@${t.student.username}` : '';
+      const lastText = t.lastMessage?.contenido || t.subject || 'Sin contenido';
+      const lastDate = t.lastMessage?.sentAt || t.updatedAt || t.createdAt;
+
+      return `
         <div class="card-custom mb-2">
           <div class="d-flex justify-content-between align-items-start">
-            <div><div style="font-weight:600;font-size:14px;">${t.sender_nombre||'Estudiante'}</div><div style="color:var(--text-dim);font-size:13px;margin-top:4px;">${t.contenido||''}</div></div>
-            <div style="font-size:11px;font-family:var(--font-mono);color:var(--text-muted);">${formatDate(t.fecha)}</div>
+            <div>
+              <div style="font-weight:600;font-size:14px;">
+                ${escapeHtml(studentName)}
+              </div>
+              <div style="color:var(--accent);font-size:12px;">
+                ${escapeHtml(username)}
+              </div>
+              <div style="color:var(--text-dim);font-size:13px;margin-top:6px;">
+                ${escapeHtml(lastText)}
+              </div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">
+                Estado: ${escapeHtml(t.status || 'open')}
+              </div>
+            </div>
+            <div style="font-size:11px;font-family:var(--font-mono);color:var(--text-muted);">
+              ${formatDate(lastDate)}
+            </div>
           </div>
+
+          <div id="thread-messages-${t._id}" class="mt-3"></div>
+
           <div class="mt-3">
+            <button class="btn-outline-custom mb-2" style="padding:6px 14px;font-size:12px;" onclick="loadThreadMessages('${t._id}')">
+              <i class="bi bi-eye"></i> Ver conversación
+            </button>
+
             <textarea class="form-control mb-2" id="reply-${t._id}" rows="2" placeholder="Responde aquí..."></textarea>
-            <button class="btn-outline-custom" style="padding:6px 14px;font-size:12px;" onclick="replyToThread('${t._id}')"><i class="bi bi-reply"></i> Responder</button>
+
+            <button class="btn-outline-custom" style="padding:6px 14px;font-size:12px;" onclick="replyToThread('${t._id}')">
+              <i class="bi bi-reply"></i> Responder
+            </button>
+
+            <button class="btn-outline-custom" style="padding:6px 14px;font-size:12px;" onclick="ReplyToThread('${t._id}')">
+              <i class="bi bi-check-circle"></i> Quitar de cola
+            </button>
           </div>
-        </div>`).join('');
-    }
-  } catch(e) {} finally { hideSpinner(); }
+        </div>
+      `;
+    }).join('');
+
+  } catch (e) {
+    console.error(e);
+    document.getElementById('courseThreadsList').innerHTML =
+      '<div class="text-muted-custom">Error al cargar consultas.</div>';
+  } finally {
+    hideSpinner();
+  }
+}
+
+async function loadThreadMessages(threadId) {
+  const userId = currentUser._id || currentUser.user_id || currentUser.id;
+  const container = document.getElementById(`thread-messages-${threadId}`);
+  if (!container) return;
+
+  const { ok, data } = await api(
+    'GET',
+    `/api/messages/thread/${threadId}?userId=${userId}`
+  );
+
+  if (!ok || !data.messages) {
+    container.innerHTML = '<div class="text-muted-custom">No se pudo cargar la conversación.</div>';
+    return;
+  }
+
+  container.innerHTML = data.messages.map(m => `
+    <div style="padding:8px 10px;border:1px solid var(--border);border-radius:10px;margin-bottom:6px;">
+      <div style="font-size:12px;font-weight:600;">
+        ${m.isTeacher ? 'Profesor' : escapeHtml(m.sender_nombre || 'Estudiante')}
+      </div>
+      <div style="font-size:13px;color:var(--text-dim);margin-top:3px;">
+        ${escapeHtml(m.contenido)}
+      </div>
+      <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">
+        ${formatDate(m.sentAt)}
+      </div>
+    </div>
+  `).join('');
 }
 
 async function replyToThread(threadId) {
   const contenido = document.getElementById(`reply-${threadId}`).value.trim();
   if (!contenido) return;
+
   showSpinner();
+
   try {
+    const senderId = currentUser._id || currentUser.user_id || currentUser.id;
+
     const { ok, data } = await api('POST', '/api/messages/course', {
-      course_id: currentCourseId,
-      sender_id: currentUser._id || currentUser.user_id,
-      contenido,
-      tipo: 'respuesta',
-      respuesta_a: threadId
+      courseId: currentCourseId,
+      senderId,
+      text: contenido,
+      threadId
     });
-    if (ok) { document.getElementById(`reply-${threadId}`).value = ''; showAlert('courseDetailAlert', 'Respuesta enviada.', 'success'); }
-  } catch(e) {} finally { hideSpinner(); }
+
+    if (ok) {
+      document.getElementById(`reply-${threadId}`).value = '';
+      await loadThreadMessages(threadId);
+      showAlert('courseDetailAlert', 'Respuesta enviada.', 'success');
+    } else {
+      showAlert('courseDetailAlert', data.message || 'Error al responder.', 'danger');
+    }
+  } catch (e) {
+    console.error(e);
+    showAlert('courseDetailAlert', 'Error de conexión.', 'danger');
+  } finally {
+    hideSpinner();
+  }
 }
+
+
+
+
+
 
 // ---- CLONE COURSE ----
 function showCloneModal() {
@@ -784,14 +960,25 @@ async function searchCourses() {
 
 async function enrollCourse(courseId) {
   showSpinner();
+
   try {
-    const { ok, data } = await api('POST', '/api/enrollments', { user_id: currentUser._id || currentUser.user_id, course_id: courseId });
+    const studentId = currentUser._id || currentUser.user_id || currentUser.id;
+
+    const { ok, data } = await api('POST', '/api/enrollments', {
+      studentId: studentId,
+      courseId: courseId
+    });
+
     if (ok) {
       showAlert('searchAlert', '¡Te has matriculado exitosamente!', 'success');
     } else {
       showAlert('searchAlert', data.message || 'Error al matricularse.', 'danger');
     }
-  } catch(e) { showAlert('searchAlert', 'Error de conexión.', 'danger'); } finally { hideSpinner(); }
+  } catch(e) {
+    showAlert('searchAlert', 'Error de conexión.', 'danger');
+  } finally {
+    hideSpinner();
+  }
 }
 
 // ===============================================
@@ -799,17 +986,26 @@ async function enrollCourse(courseId) {
 // ===============================================
 async function loadEnrolledCourses() {
   if (!currentUser) return;
+
   showSpinner();
+
   try {
-    const { ok, data } = await api('GET', `/api/enrollments/student/${currentUser._id || currentUser.user_id}`);
-    if (ok && data.enrollments) {
-      if (!data.enrollments.length) {
+    const studentId = currentUser._id || currentUser.user_id || currentUser.id;
+
+    const { ok, data } = await api('GET', `/api/enrollments/student/${studentId}`);
+
+    if (ok && data.courses) {
+      if (!data.courses.length) {
         document.getElementById('enrolledGrid').innerHTML = '<div class="text-muted-custom">No estás matriculado en ningún curso. ¡Explora los cursos disponibles!</div>';
         return;
       }
-      document.getElementById('enrolledGrid').innerHTML = data.enrollments.map(e => renderCourseCard(e, false)).join('');
+
+      document.getElementById('enrolledGrid').innerHTML = data.courses.map(e => renderCourseCard(e, false)).join('');
     }
-  } catch(e) {} finally { hideSpinner(); }
+  } catch(e) {
+  } finally {
+    hideSpinner();
+  }
 }
 
 function openStudentCourse(courseId, codigo, nombre) {
@@ -833,17 +1029,36 @@ function switchStudentTab(tab) {
 
 async function loadStudentContent() {
   if (!currentStudentCourseId) return;
+
   showSpinner();
+
   try {
-    const { ok, data } = await api('GET', `/api/enrollments/${currentStudentCourseId}/content`);
+    const userId = currentUser._id || currentUser.user_id || currentUser.id;
+
+    const { ok, data } = await api(
+      'GET',
+      `/api/enrollments/${currentStudentCourseId}/content?userId=${userId}`
+    );
+
     if (ok && data.sections) {
       if (!data.sections.length) {
-        document.getElementById('studentSections').innerHTML = '<div class="text-muted-custom">Este curso aún no tiene contenido.</div>';
+        document.getElementById('studentSections').innerHTML =
+          '<div class="text-muted-custom">Este curso aún no tiene contenido.</div>';
         return;
       }
-      document.getElementById('studentSections').innerHTML = data.sections.filter(s => !s.parent_section_id).map(s => renderStudentSection(s, data.sections)).join('');
+
+      document.getElementById('studentSections').innerHTML =
+        data.sections.map(s => renderStudentSection(s, data.sections)).join('');
+    } else {
+      document.getElementById('studentSections').innerHTML =
+        `<div class="text-muted-custom">${data.message || 'No se pudo cargar el contenido.'}</div>`;
     }
-  } catch(e) {} finally { hideSpinner(); }
+  } catch (e) {
+    document.getElementById('studentSections').innerHTML =
+      '<div class="text-muted-custom">Error de conexión.</div>';
+  } finally {
+    hideSpinner();
+  }
 }
 
 function renderStudentSection(section, allSections, depth = 0) {
@@ -879,52 +1094,116 @@ async function loadStudentEvals() {
 }
 
 async function loadClassmates() {
-  if (!currentStudentCourseId) return;
+  if (!currentStudentCourseId || !currentUser) return;
+
   showSpinner();
+
   try {
-    const { ok, data } = await api('GET', `/api/social/courses/${currentStudentCourseId}/mates`);
-    if (ok && data.classmates) {
-      document.getElementById('classmatesList').innerHTML = data.classmates.length
-        ? data.classmates.map(u => `<div class="friend-card">
-            <div class="friend-avatar">${getInitials(u.nombre||u.username)}</div>
-            <div><div class="friend-name">${u.nombre||u.nombre_completo||'—'}</div><div class="friend-username">@${u.username||'—'}</div></div>
+    const userId = currentUser._id || currentUser.user_id || currentUser.id;
+
+    const { ok, data } = await api(
+      'GET',
+      `/api/social/courses/${currentStudentCourseId}/mates?userId=${userId}`
+    );
+
+    const mates = data.coursemates || data.classmates || [];
+
+    if (ok) {
+      document.getElementById('classmatesList').innerHTML = mates.length
+        ? mates.map(u => `<div class="friend-card">
+            <div class="friend-avatar">${getInitials(u.fullName || u.nombre || u.username)}</div>
+            <div>
+              <div class="friend-name">${u.fullName || u.nombre || u.nombre_completo || '—'}</div>
+              <div class="friend-username">@${u.username || '—'}</div>
+            </div>
           </div>`).join('')
         : '<div class="text-muted-custom">No hay otros compañeros en este curso.</div>';
+    } else {
+      document.getElementById('classmatesList').innerHTML =
+        `<div class="text-muted-custom">${data.message || 'Error al cargar compañeros.'}</div>`;
     }
-  } catch(e) {} finally { hideSpinner(); }
+  } catch (e) {
+    document.getElementById('classmatesList').innerHTML =
+      '<div class="text-muted-custom">Error de conexión.</div>';
+  } finally {
+    hideSpinner();
+  }
 }
 
 async function loadStudentQueries() {
   if (!currentStudentCourseId) return;
+
   try {
-    const { ok, data } = await api('GET', `/api/messages/course/${currentStudentCourseId}/threads`);
-    if (ok && data.threads) {
-      const myThreads = (data.threads || []).filter(t => t.sender_id === (currentUser._id || currentUser.user_id));
-      document.getElementById('queryThreadsList').innerHTML = myThreads.length
-        ? myThreads.map(t => `<div class="card-custom mb-2">
-            <div style="font-size:13px;color:var(--text-dim);">${t.contenido}</div>
-            <div style="font-size:11px;font-family:var(--font-mono);color:var(--text-muted);margin-top:6px;">${formatDate(t.fecha)}</div>
-          </div>`).join('')
-        : '<div class="text-muted-custom">No tienes consultas enviadas.</div>';
+    const userId = currentUser._id || currentUser.user_id || currentUser.id;
+
+    const { ok, data } = await api(
+      'GET',
+      `/api/messages/course/${currentStudentCourseId}/threads?userId=${userId}`
+    );
+
+    if (!ok || !data.threads || data.threads.length === 0) {
+      document.getElementById('queryThreadsList').innerHTML =
+        '<div class="text-muted-custom">No tienes consultas enviadas.</div>';
+      return;
     }
-  } catch(e) {}
+
+    document.getElementById('queryThreadsList').innerHTML = data.threads.map(t => {
+      const lastText = t.lastMessage?.contenido || t.subject || 'Sin contenido';
+      const lastDate = t.lastMessage?.sentAt || t.updatedAt || t.createdAt;
+
+      return `
+        <div class="card-custom mb-2">
+          <div style="font-size:13px;color:var(--text-dim);">
+            ${escapeHtml(lastText)}
+          </div>
+
+          <div style="font-size:11px;font-family:var(--font-mono);color:var(--text-muted);margin-top:6px;">
+            ${formatDate(lastDate)} | Estado: ${escapeHtml(t.status || 'open')}
+          </div>
+
+          <div id="thread-messages-${t._id}" class="mt-3"></div>
+
+          <button class="btn-outline-custom mt-2" style="padding:6px 14px;font-size:12px;" onclick="loadThreadMessages('${t._id}')">
+            <i class="bi bi-eye"></i> Ver respuesta
+          </button>
+        </div>
+      `;
+    }).join('');
+
+  } catch (e) {
+    console.error(e);
+    document.getElementById('queryThreadsList').innerHTML =
+      '<div class="text-muted-custom">Error al cargar consultas.</div>';
+  }
 }
 
 async function sendQuery() {
   const contenido = document.getElementById('newQueryText').value.trim();
   if (!contenido) return;
+
   showSpinner();
+
   try {
+    const senderId = currentUser._id || currentUser.user_id || currentUser.id;
+
     const { ok, data } = await api('POST', '/api/messages/course', {
-      course_id: currentStudentCourseId,
-      sender_id: currentUser._id || currentUser.user_id,
-      contenido, tipo: 'consulta'
+      courseId: currentStudentCourseId,
+      senderId,
+      text: contenido
     });
+
     if (ok) {
       document.getElementById('newQueryText').value = '';
-      loadStudentQueries();
+      await loadStudentQueries();
+    } else {
+      alert(data.message || 'Error al enviar consulta.');
     }
-  } catch(e) {} finally { hideSpinner(); }
+  } catch (e) {
+    console.error(e);
+    alert('Error de conexión.');
+  } finally {
+    hideSpinner();
+  }
 }
 
 // ===============================================
@@ -1121,8 +1400,9 @@ async function loadConversations() {
     if (ok && data.conversations) {
       document.getElementById('conversationsList').innerHTML = data.conversations.length
         ? data.conversations.map(c => {
-            const otherUserId = c.userId || c.user_id || c._id || c.id;
-            const name = c.fullName || c.nombre || c.nombre_completo || c.username || '—';
+            const other = c.otherUser || c;
+            const otherUserId = other.userId || other.user_id || other._id || other.id;
+            const name = other.fullName || other.nombre || other.nombre_completo || other.username || '—';
 
             return `<div class="friend-card" onclick="openConversation('${otherUserId}','${name}')">
               <div class="friend-avatar" style="width:36px;height:36px;font-size:13px;">${getInitials(name)}</div>
@@ -1138,6 +1418,47 @@ async function loadConversations() {
     }
   } catch(e) {
     console.error(e);
+  } finally {
+    hideSpinner();
+  }
+}
+
+
+async function openConversationByUsername() {
+  const username = document.getElementById('newMsgUsername').value.trim();
+
+  if (!username) {
+    return alert('Ingrese el username del usuario.');
+  }
+
+  showSpinner();
+
+  try {
+    const { ok, data } = await api(
+      'GET',
+      `/api/social/users/search?q=${encodeURIComponent(username)}`
+    );
+
+    if (!ok || !data.users || data.users.length === 0) {
+      return alert('No se encontró ningún usuario con ese username.');
+    }
+
+    const user = data.users.find(u => 
+      u.username && u.username.toLowerCase() === username.toLowerCase()
+    ) || data.users[0];
+
+    const userId = user.userId || user.user_id || user._id || user.id;
+    const name = user.fullName || user.nombre || user.nombre_completo || user.username;
+
+    if (!userId) {
+      return alert('No se pudo obtener el ID del usuario encontrado.');
+    }
+
+    await openConversation(userId, name);
+
+  } catch (e) {
+    console.error(e);
+    alert('Error al buscar el usuario.');
   } finally {
     hideSpinner();
   }
@@ -1396,3 +1717,7 @@ document.getElementById('menuToggle').addEventListener('click', () => {
 
 // Initialize â\x80\x94 show auth page
 showPage('page-auth');
+
+window.loadThreadMessages = loadThreadMessages;
+window.replyToThread = replyToThread;
+window.sendQuery = sendQuery;

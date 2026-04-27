@@ -54,8 +54,7 @@
       <div class="nav-item"><button class="nav-link-btn" onclick="showPage('page-friends')"><i class="bi bi-people"></i> Amigos</button></div>
       <div class="nav-item"><button class="nav-link-btn" onclick="showPage('page-messages')"><i class="bi bi-chat-dots"></i> Mensajes</button></div>
       <div class="nav-section">Cuenta</div>
-      <div class="nav-item"><button class="nav-link-btn" onclick="showPage('page-password')"><i class="bi bi-shield-lock"></i> Contraseña</button></div>
-      <div class="nav-item"><button class="nav-link-btn" onclick="showPage('page-health')"><i class="bi bi-activity"></i> Estado BD</button></div>
+      <div class="nav-item"><button class="nav-link-btn" onclick="showPage('page-password')"><i class="bi bi-shield-lock"></i> Contraseña</button></div>      
       <div id="nav-admin" style="display:none">
         <div class="nav-section">Administración</div>
         <div class="nav-item"><button class="nav-link-btn" onclick="showPage('page-admin')"><i class="bi bi-bar-chart-line"></i> Auditoría</button></div>
@@ -434,12 +433,8 @@
   <div class="row g-3">
     <div class="col-md-4">
       <div class="card-custom">
-        <div style="font-weight:700; margin-bottom:16px;">Conversaciones</div>
-        <div id="conversationsList"><div class="text-muted-custom">Sin conversaciones</div></div>
-        <div class="divider"></div>
-        <div style="font-weight:600; font-size:13px; margin-bottom:10px;">Nueva Conversación</div>
-        <input type="text" class="form-control mb-2" id="newMsgUserId" placeholder="ID del usuario destinatario"/>
-        <button class="btn-outline-custom w-100" onclick="openConversation(document.getElementById('newMsgUserId').value)">Abrir Chat</button>
+        <input type="text" class="form-control mb-2" id="newMsgUsername" placeholder="Username del usuario"/>
+        <button class="btn-outline-custom w-100" onclick="openConversationByUsername()">Abrir Chat</button>
       </div>
     </div>
     <div class="col-md-8">

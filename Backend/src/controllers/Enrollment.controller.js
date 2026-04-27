@@ -59,11 +59,12 @@ exports.getCourseContent = async (req, res) => {
     try {
         const { courseId } = req.params;
         const { userId } = req.query;
+
         if (!courseId || !userId) {
             return res.status(400).json({ message: 'courseId y userId son requeridos.' });
         }
 
-        const result = await getCourseContent({ userId, courseId });
+        const result = await getCourseContent({ studentId: userId, courseId });
         res.json(result);
     } catch (error) {
         const status = error.message.includes('matriculado') ? 403 : 500;

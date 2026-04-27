@@ -118,42 +118,45 @@ const getEnrolledCourses = async ({ studentId }) => {
     const enrollments = await Enrollment.find({
         studentId,
         estado: 'activo'
-    })
-        .populate({
-            path: 'courseId',
-            match: { publicado: true },
-            select: 'codigo nombre descripcion foto fecha_inicio fecha_fin docente estado publicado'
-        })
-        .sort({ enrolledAt: -1 });
+    }).sort({ enrolledAt: -1 });
 
     const courses = await Promise.all(
-        enrollments
-            .filter(e => e.courseId)
-            .map(async (e) => {
-                const course = e.courseId.toObject();
+        enrollments.map(async (e) => {
+            const courseDoc = await Course.findOne({
+                _id: e.courseId,
+                publicado: true
+            }).select('codigo nombre descripcion foto fecha_inicio fecha_fin docente estado publicado');
 
-                const teacher = await User.findById(e.courseId.docente?.user_id)
-                    .select('username fullName avatar');
+            if (!courseDoc) {
+                return null;
+            }
 
-                course.profesor = teacher ? {
-                    userId: teacher._id,
-                    username: teacher.username,
-                    fullName: teacher.fullName,
-                    avatar: teacher.avatar
-                } : {
-                    userId: e.courseId.docente?.user_id,
-                    fullName: e.courseId.docente?.nombre
-                };
+            const course = courseDoc.toObject();
 
-                return {
-                    ...course,
-                    enrolledAt: e.enrolledAt,
-                    estadoMatricula: e.estado
-                };
-            })
+            const teacher = await User.findById(courseDoc.docente?.user_id)
+                .select('username fullName avatar');
+
+            course.profesor = teacher ? {
+                userId: teacher._id,
+                username: teacher.username,
+                fullName: teacher.fullName,
+                avatar: teacher.avatar
+            } : {
+                userId: courseDoc.docente?.user_id,
+                fullName: courseDoc.docente?.nombre
+            };
+
+            return {
+                ...course,
+                enrolledAt: e.enrolledAt,
+                estadoMatricula: e.estado
+            };
+        })
     );
 
-    return { courses };
+    return {
+        courses: courses.filter(c => c !== null)
+    };
 };
 
 // HU-23: Ver contenido de un curso matriculado
@@ -208,12 +211,12 @@ const getCourseContent = async ({ studentId, courseId }) => {
         const sections = await Section.find({
             courseId,
             parentSectionId
-        }).sort({ order: 1 });
+        }).sort({ orden: 1 });
 
         const sectionsWithContent = [];
 
         for (const section of sections) {
-            const contents = await Content.find({ sectionId: section._id }).sort({ order: 1 });
+            const contents = await Content.find({ sectionId: section._id }).sort({ orden: 1 });
 
             const subsections = await getSectionsWithContent(section._id);
 

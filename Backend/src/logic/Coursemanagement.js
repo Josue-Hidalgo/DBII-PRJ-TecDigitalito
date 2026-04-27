@@ -216,7 +216,7 @@ const getSections = async ({ courseId, teacherId }) => {
     throw new Error('No tienes permiso para ver las secciones de este curso.');
   }
 
-  const sections = await Section.find({ courseId }).sort({ order: 1 });
+  const sections = await Section.find({ courseId }).sort({ orden: 1 });
 
   return { sections };
 };
@@ -234,25 +234,26 @@ const cloneCourse = async ({ originalCourseId, teacherId, newCode, newName, newS
     const teacher     = await validateUser(teacherId);
     const teacherName = teacher.fullName || teacher.username || 'Docente Desconocido';
 
-    const newCourseId = uuidv4();
-    const newCourse = new Course({
-        _id:              newCourseId,
-        codigo:           newCode.trim().toUpperCase(),
-        nombre:           newName.trim(),
-        descripcion:      originalCourse.descripcion,
-        fecha_inicio:     new Date(newStartDate),
-        fecha_fin:        newEndDate ? new Date(newEndDate) : null,
-        foto:             originalCourse.foto,
-        docente: {
-            user_id: teacherId.toString(),
-            nombre:  teacherName,
-        },
-        publicado:          false,
-        estado:             'borrador',
-        original_course_id: originalCourseId,
-    });
 
-    await newCourse.save();
+const newCourse = new Course({
+    codigo:           newCode.trim().toUpperCase(),
+    nombre:           newName.trim(),
+    descripcion:      originalCourse.descripcion,
+    fecha_inicio:     new Date(newStartDate),
+    fecha_fin:        newEndDate ? new Date(newEndDate) : null,
+    foto:             originalCourse.foto,
+    docente: {
+        user_id: teacherId.toString(),
+        nombre:  teacherName,
+    },
+    publicado:          false,
+    estado:             'borrador',
+    original_course_id: originalCourseId.toString(),
+});
+
+await newCourse.save();
+
+const newCourseId = newCourse._id.toString();
 
     // Sincronizar con Neo4j
     await syncCourseToGraph({
