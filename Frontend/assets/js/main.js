@@ -591,47 +591,112 @@ function addOption(qn) {
 
 async function saveEvaluation() {
   clearAlert('evalModalAlert');
-  const titulo = document.getElementById('evalTitle').value.trim();
+
+  const title = document.getElementById('evalTitle').value.trim();
   const descripcion = document.getElementById('evalDesc').value.trim();
-  const fecha_inicio = document.getElementById('evalStart').value;
-  const fecha_fin = document.getElementById('evalEnd').value;
+  const startDate = document.getElementById('evalStart').value;
+  const endDate = document.getElementById('evalEnd').value;
 
-  if (!titulo || !fecha_inicio || !fecha_fin)
+  if (!title || !startDate || !endDate) {
     return showAlert('evalModalAlert', 'Completa título y fechas.', 'warning');
-  if (new Date(fecha_fin) <= new Date(fecha_inicio))
-    return showAlert('evalModalAlert', 'La fecha de fin debe ser posterior al inicio.', 'warning');
+  }
 
-  const preguntas = [];
+  if (new Date(endDate) <= new Date(startDate)) {
+    return showAlert('evalModalAlert', 'La fecha de fin debe ser posterior al inicio.', 'warning');
+  }
+
+  const questions = [];
   const qBlocks = document.querySelectorAll('.question-block');
+
   for (let i = 0; i < qBlocks.length; i++) {
     const qn = qBlocks[i].id.split('-')[1];
-    const enunciado = document.getElementById(`q${qn}-text`).value.trim();
-    if (!enunciado) return showAlert('evalModalAlert', `La pregunta ${i+1} no tiene enunciado.`, 'warning');
+    const text = document.getElementById(`q${qn}-text`).value.trim();
+
+    if (!text) {
+      return showAlert('evalModalAlert', `La pregunta ${i + 1} no tiene enunciado.`, 'warning');
+    }
+
     const optionRows = qBlocks[i].querySelectorAll('.option-row');
     const correctRadio = qBlocks[i].querySelector(`input[name="q${qn}-correct"]:checked`);
     const correctIdx = correctRadio ? parseInt(correctRadio.value) : -1;
-    if (correctIdx === -1) return showAlert('evalModalAlert', `Selecciona la respuesta correcta de la pregunta ${i+1}.`, 'warning');
-    const opciones = [];
+
+    if (correctIdx === -1) {
+      return showAlert('evalModalAlert', `Selecciona la respuesta correcta de la pregunta ${i + 1}.`, 'warning');
+    }
+
+    const options = [];
+    let correctOptionId = null;
+
     optionRows.forEach((row, idx) => {
-      const txt = row.querySelector('input[type="text"]').value.trim();
-      if (txt) opciones.push({ texto: txt, es_correcta: idx === correctIdx });
+      const optionText = row.querySelector('input[type="text"]').value.trim();
+
+      if (optionText) {
+        const optionId = `q${i + 1}_op${idx + 1}`;
+
+        options.push({
+          optionId,
+          text: optionText
+        });
+
+        if (idx === correctIdx) {
+          correctOptionId = optionId;
+        }
+      }
     });
-    if (opciones.length < 2) return showAlert('evalModalAlert', `La pregunta ${i+1} necesita al menos 2 opciones.`, 'warning');
-    preguntas.push({ enunciado, orden: i+1, opciones });
+
+    if (options.length < 2) {
+      return showAlert('evalModalAlert', `La pregunta ${i + 1} necesita al menos 2 opciones.`, 'warning');
+    }
+
+    if (!correctOptionId) {
+      return showAlert('evalModalAlert', `La respuesta correcta de la pregunta ${i + 1} está vacía.`, 'warning');
+    }
+
+    questions.push({
+      text,
+      orden: i + 1,
+      options,
+      correctOptionId
+    });
   }
-  if (!preguntas.length) return showAlert('evalModalAlert', 'Agrega al menos una pregunta.', 'warning');
+
+  if (!questions.length) {
+    return showAlert('evalModalAlert', 'Agrega al menos una pregunta.', 'warning');
+  }
+
+  const teacherId = currentUser._id || currentUser.user_id || currentUser.id;
 
   showSpinner();
+
   try {
-    const { ok, data } = await api('POST', '/api/evaluations', { course_id: currentCourseId, titulo, descripcion, fecha_inicio, fecha_fin, preguntas });
+    const { ok, data } = await api('POST', '/api/evaluations', {
+      courseId: currentCourseId,
+      teacherId,
+      title,
+      descripcion,
+      startDate,
+      endDate,
+      questions
+    });
+
     if (ok) {
       bootstrap.Modal.getInstance(document.getElementById('modalEvaluation')).hide();
       showAlert('courseDetailAlert', '¡Evaluación creada!', 'success');
+
+      await loadEvaluationsTeacher();
     } else {
       showAlert('evalModalAlert', data.message || 'Error al crear evaluación.', 'danger');
     }
-  } catch(e) { showAlert('evalModalAlert', 'Error de conexión.', 'danger'); } finally { hideSpinner(); }
+
+  } catch (e) {
+    console.error(e);
+    showAlert('evalModalAlert', 'Error de conexión.', 'danger');
+  } finally {
+    hideSpinner();
+  }
 }
+
+window.saveEvaluation = saveEvaluation;
 
 // ---- STUDENTS LIST ----
 async function loadStudentsList() {
@@ -1551,33 +1616,53 @@ async function sendDirectMessage() {
 // ===============================================
 async function changePassword() {
   clearAlert('pwChangeAlert');
-  const current_password = document.getElementById('pwCurrent').value;
-  const new_password = document.getElementById('pwNew').value;
+
+  const currentPassword = document.getElementById('pwCurrent').value;
+  const newPassword = document.getElementById('pwNew').value;
   const confirm = document.getElementById('pwConfirm').value;
 
-  if (!current_password || !new_password || !confirm)
+  if (!currentPassword || !newPassword || !confirm) {
     return showAlert('pwChangeAlert', 'Completa todos los campos.', 'warning');
-  if (new_password !== confirm)
+  }
+
+  if (newPassword !== confirm) {
     return showAlert('pwChangeAlert', 'Las contraseñas nuevas no coinciden.', 'danger');
-  if (new_password.length < 8)
+  }
+
+  if (newPassword.length < 8) {
     return showAlert('pwChangeAlert', 'La nueva contraseña debe tener al menos 8 caracteres.', 'warning');
+  }
+
+  const userId = currentUser._id || currentUser.user_id || currentUser.id;
 
   showSpinner();
+
   try {
     const { ok, data } = await api('PUT', '/api/password/change', {
-      user_id: currentUser._id || currentUser.user_id,
-      current_password, new_password
+      userId,
+      currentPassword,
+      newPassword
     });
+
     if (ok) {
       showAlert('pwChangeAlert', '¡Contraseña actualizada exitosamente!', 'success');
+
       document.getElementById('pwCurrent').value = '';
       document.getElementById('pwNew').value = '';
       document.getElementById('pwConfirm').value = '';
     } else {
       showAlert('pwChangeAlert', data.message || 'Error al cambiar contraseña.', 'danger');
     }
-  } catch(e) { showAlert('pwChangeAlert', 'Error de conexión.', 'danger'); } finally { hideSpinner(); }
+
+  } catch (e) {
+    console.error(e);
+    showAlert('pwChangeAlert', 'Error de conexión.', 'danger');
+  } finally {
+    hideSpinner();
+  }
 }
+
+window.changePassword = changePassword;
 
 async function invalidateAllSessions() {
   clearAlert('sessionAlert');

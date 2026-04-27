@@ -7,11 +7,14 @@ const {
 // ── POST /api/password/forgot  (HU-07 paso 1) ────────────────────────────────
 exports.forgotPassword = async (req, res) => {
   try {
-    const { username } = req.body;
-    if (!username) return res.status(400).json({ message: 'username requerido.' });
+    const { email } = req.body;
 
-    // La respuesta es siempre la misma para no revelar si el usuario existe
-    const result = await requestPasswordReset({ username });
+    if (!email) {
+      return res.status(400).json({ message: 'email requerido.' });
+    }
+
+    const result = await requestPasswordReset({ email });
+
     res.json(result);
   } catch (error) {
     res.status(500).json({ message: error.message });

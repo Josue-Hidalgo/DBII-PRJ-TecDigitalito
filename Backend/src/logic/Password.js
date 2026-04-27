@@ -36,21 +36,22 @@ const isPreviousPassword = (newPassword, salt, passwordHistory = []) => {
  * @param {string} params.username
  * @returns {Promise<{ message: string }>}
  */
-const requestPasswordReset = async ({ username }) => {
-  const user = await User.findOne({ username: username.toLowerCase() }).lean();
+const requestPasswordReset = async ({ email }) => {
+  const user = await User.findOne({
+    email: email.trim().toLowerCase()
+  }).lean();
 
   if (user) {
     const token = await createResetToken(user._id, user.email);
 
     await enqueueNotification(user._id, user.email, 'reset_password', {
       reset_token: token,
-      timestamp:   Date.now(),
+      timestamp: Date.now(),
     });
   }
 
-  // Respuesta genérica siempre (no revelar si el usuario existe)
   return {
-    message: 'Si el usuario existe, recibirás un correo con instrucciones para restablecer tu contraseña.',
+    message: 'Si el correo existe, recibirás un correo con instrucciones para restablecer tu contraseña.',
   };
 };
 
