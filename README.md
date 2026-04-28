@@ -51,6 +51,13 @@ O bien:
 ```bash
 npm run start
 ```
+- En carpeta /Backend:
+```bash
+node Emailworker.js
+```
+
+- Hacer instalación de la Extensión Live Server desde VS Code.
+- Hacer click derecho en index.html + Abrir desde Live Server.
 
 - En carperta /: 
 ```bash
