@@ -52,6 +52,26 @@ function formatDate(d) {
   return new Date(d).toLocaleDateString('es-CR', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
+
+
+
+// ===============================================
+//  HTML
+// ===============================================
+
+function escapeHtml(text) {
+  return String(text || '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+
+
+
+
 // ===============================================
 //  NAVIGATION
 // ===============================================
@@ -393,35 +413,76 @@ async function loadSections() {
 }
 
 function renderSections(sections, parentId = null, depth = 0) {
-  const children = sections.filter(s => (s.parent_section_id || null) === parentId);
+  const list = document.getElementById('sectionsList');
+
+  if (depth === 0) {
+    list.innerHTML = '';
+  }
+
+  const children = sections.filter(s => {
+    const parent = s.parentSectionId || s.parent_section_id || null;
+    return parent === parentId;
+  });
+
   if (!children.length && depth === 0) {
-      document.getElementById('sectionsList').innerHTML = '<div class="text-muted-custom">Sin secciones aún.</div>';
+    list.innerHTML = '<div class="text-muted-custom">Sin secciones aún.</div>';
     return;
   }
-  if (depth === 0) document.getElementById('sectionsList').innerHTML = '';
+
   children.forEach(s => {
-    const sId = s._id || s.section_id;
+    const sId = s._id || s.sectionId || s.section_id;
+    const title = s.title || s.titulo || 'Sin título';
+    const descripcion = s.descripcion || '';
+
     const el = document.createElement('div');
     el.className = 'section-item' + (depth > 0 ? ' sub' : '');
-    el.innerHTML = `<div class="section-header">
-      <div><div class="section-title"><i class="bi bi-folder2" style="margin-right:8px;color:var(--accent);"></i>${s.titulo}</div>${s.descripcion ? `<div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${s.descripcion}</div>` : ''}</div>
-      <div class="section-actions">
-        <button class="btn-outline-custom" style="padding:5px 10px;font-size:11px;" onclick="showAddSectionModal('${sId}')"><i class="bi bi-plus"></i> Subsección</button>
-        <button class="btn-outline-custom" style="padding:5px 10px;font-size:11px;" onclick="showAddContentModal('${sId}')"><i class="bi bi-file-plus"></i> Contenido</button>
+    el.style.marginLeft = `${depth * 22}px`;
+
+    el.innerHTML = `
+      <div class="section-header">
+        <div>
+          <div class="section-title">
+            <i class="bi bi-folder2" style="margin-right:8px;color:var(--accent);"></i>
+            ${escapeHtml(title)}
+          </div>
+          ${
+            descripcion
+              ? `<div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${escapeHtml(descripcion)}</div>`
+              : ''
+          }
+        </div>
+
+        <div class="section-actions">
+          <button class="btn-outline-custom" style="padding:5px 10px;font-size:11px;" onclick="showAddSectionModal('${sId}')">
+            <i class="bi bi-plus"></i> Subsección
+          </button>
+          <button class="btn-outline-custom" style="padding:5px 10px;font-size:11px;" onclick="showAddContentModal('${sId}')">
+            <i class="bi bi-file-plus"></i> Contenido
+          </button>
+        </div>
       </div>
-    </div>`;
-    document.getElementById('sectionsList').appendChild(el);
+    `;
+
+    list.appendChild(el);
+
     if (s.contents && s.contents.length) {
       s.contents.forEach(c => {
         const cEl = document.createElement('div');
-        cEl.style.cssText = 'margin-left:'+(depth+1)*24+'px; margin-bottom:6px;';
-        cEl.innerHTML = `<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg);border-radius:6px;border:1px solid var(--border);">
-          <i class="bi ${contentIcon(c.tipo)}" style="color:var(--accent2);"></i>
-          <span style="font-size:13px;color:var(--text-dim);">${c.tipo}: ${c.data?.nombre_archivo || c.data?.texto?.slice(0,50) || c.data?.url || 'â\x80\x94'}</span>
-        </div>`;
-        document.getElementById('sectionsList').appendChild(cEl);
+        cEl.style.cssText = `margin-left:${(depth + 1) * 24}px; margin-bottom:6px;`;
+
+        cEl.innerHTML = `
+          <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg);border-radius:6px;border:1px solid var(--border);">
+            <i class="bi ${contentIcon(c.tipo || c.type)}" style="color:var(--accent2);"></i>
+            <span style="font-size:13px;color:var(--text-dim);">
+              ${(c.tipo || c.type)}: ${escapeHtml(c.data?.nombre_archivo || c.data?.texto?.slice(0,50) || c.data?.url || '—')}
+            </span>
+          </div>
+        `;
+
+        list.appendChild(cEl);
       });
     }
+
     renderSections(sections, sId, depth + 1);
   });
 }
@@ -444,6 +505,7 @@ async function saveSection() {
   clearAlert('sectionModalAlert');
 
   const title = document.getElementById('sectionTitle').value.trim();
+  const descripcion = document.getElementById('sectionDesc')?.value.trim() || '';
   const order = parseInt(document.getElementById('sectionOrder').value) || 1;
   const parentSectionId = document.getElementById('sectionParentId').value || null;
 
@@ -461,19 +523,28 @@ async function saveSection() {
 
   try {
     const { ok, data } = await api('POST', `/api/courses/${currentCourseId}/sections`, {
-      teacherId: teacherId,
-      title: title,
-      parentSectionId: parentSectionId,
-      order: order
+      teacherId,
+      title,
+      descripcion,
+      parentSectionId,
+      order
     });
 
     if (ok) {
       bootstrap.Modal.getInstance(document.getElementById('modalSection')).hide();
-      loadSections();
+
+      document.getElementById('sectionTitle').value = '';
+      if (document.getElementById('sectionDesc')) document.getElementById('sectionDesc').value = '';
+      document.getElementById('sectionOrder').value = '1';
+      document.getElementById('sectionParentId').value = '';
+
+      await loadSections();
+
+      showAlert('courseDetailAlert', data.message || 'Sección creada correctamente.', 'success');
     } else {
       showAlert('sectionModalAlert', data.message || 'Error al crear la sección.', 'danger');
     }
-  } catch(e) {
+  } catch (e) {
     showAlert('sectionModalAlert', 'Error de conexión.', 'danger');
   } finally {
     hideSpinner();
@@ -544,8 +615,40 @@ function switchDetailTab(tab) {
 }
 
 async function loadEvaluationsTeacher() {
-  // Evaluations would come from courses content
-  document.getElementById('evalList').innerHTML = '<div class="text-muted-custom">Cargando evaluaciones...</div>';
+  const evalList = document.getElementById('evalList');
+  evalList.innerHTML = '<div class="text-muted-custom">Cargando evaluaciones...</div>';
+
+  const teacherId = currentUser._id || currentUser.user_id || currentUser.id;
+
+  try {
+    const { ok, data } = await api(
+      'GET',
+      `/api/evaluations/course/${currentCourseId}/teacher?teacherId=${teacherId}`
+    );
+
+    if (!ok) {
+      evalList.innerHTML = `<div class="text-muted-custom">${data.message || 'No se pudieron cargar las evaluaciones.'}</div>`;
+      return;
+    }
+
+    const evaluations = data.evaluations || [];
+
+    evalList.innerHTML = evaluations.length
+      ? evaluations.map(e => `
+        <div class="card-custom mb-2">
+          <div style="font-weight:700;">${escapeHtml(e.title)}</div>
+          <div class="text-muted-custom">${escapeHtml(e.descripcion || 'Sin descripción')}</div>
+          <div style="font-size:12px;margin-top:8px;">
+            Inicio: ${formatDate(e.startDate)} | Fin: ${formatDate(e.endDate)}
+          </div>
+          <div style="font-size:12px;">Preguntas: ${e.total_preguntas}</div>
+        </div>
+      `).join('')
+      : '<div class="text-muted-custom">Sin evaluaciones creadas.</div>';
+
+  } catch (e) {
+    evalList.innerHTML = '<div class="text-muted-custom">Error de conexión.</div>';
+  }
 }
 
 function showAddEvaluationModal() {
@@ -783,14 +886,7 @@ async function loadStudentsList() {
 
 
 
-function escapeHtml(text) {
-  return String(text || '')
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
-}
+
 
 // ---- COURSE THREADS (TEACHER) ----
 async function loadCourseThreads() {
@@ -1113,7 +1209,7 @@ async function loadStudentContent() {
       }
 
       document.getElementById('studentSections').innerHTML =
-        data.sections.map(s => renderStudentSection(s, data.sections)).join('');
+        data.sections.map(s => renderStudentSection(s)).join('');
     } else {
       document.getElementById('studentSections').innerHTML =
         `<div class="text-muted-custom">${data.message || 'No se pudo cargar el contenido.'}</div>`;
@@ -1126,36 +1222,89 @@ async function loadStudentContent() {
   }
 }
 
-function renderStudentSection(section, allSections, depth = 0) {
-  const children = allSections.filter(s => s.parent_section_id === (section._id || section.section_id));
-  return `<div class="section-item" style="${depth > 0 ? 'margin-left:'+depth*20+'px;' : ''}">
-    <div class="section-title"><i class="bi bi-${children.length ? 'folder2-open' : 'file-text'}" style="margin-right:8px;color:var(--accent);"></i>${section.titulo}</div>
-    ${section.descripcion ? `<div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${section.descripcion}</div>` : ''}
-    ${(section.contents||[]).map(c => `<div style="margin-top:8px;padding:8px 12px;background:var(--bg);border-radius:6px;border:1px solid var(--border);">
-      <div class="d-flex align-items-center gap-2"><i class="bi ${contentIcon(c.tipo)}" style="color:var(--accent2);"></i>
-      <span style="font-size:13px;">${c.tipo === 'texto' ? (c.data?.texto?.slice(0,100)+'...') : (c.data?.nombre_archivo || c.data?.url || c.tipo)}</span></div>
-    </div>`).join('')}
-    ${children.map(ch => renderStudentSection(ch, allSections, depth+1)).join('')}
-  </div>`;
+function renderStudentSection(section, depth = 0) {
+  const title = section.title || section.titulo || 'Sin título';
+  const descripcion = section.descripcion || '';
+  const contents = section.contents || [];
+  const subsections = section.subsections || [];
+
+  return `
+    <div class="section-item" style="${depth > 0 ? 'margin-left:' + depth * 20 + 'px;' : ''}">
+      <div class="section-title">
+        <i class="bi bi-${subsections.length ? 'folder2-open' : 'file-text'}" style="margin-right:8px;color:var(--accent);"></i>
+        ${escapeHtml(title)}
+      </div>
+
+      ${
+        descripcion
+          ? `<div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${escapeHtml(descripcion)}</div>`
+          : ''
+      }
+
+      ${contents.map(c => `
+        <div style="margin-top:8px;padding:8px 12px;background:var(--bg);border-radius:6px;border:1px solid var(--border);">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi ${contentIcon(c.tipo || c.type)}" style="color:var(--accent2);"></i>
+            <span style="font-size:13px;">
+              ${
+                (c.tipo || c.type) === 'texto'
+                  ? escapeHtml((c.data?.texto || '').slice(0,100))
+                  : escapeHtml(c.data?.nombre_archivo || c.data?.url || c.tipo || c.type)
+              }
+            </span>
+          </div>
+        </div>
+      `).join('')}
+
+      ${subsections.map(ch => renderStudentSection(ch, depth + 1)).join('')}
+    </div>
+  `;
 }
 
 // ---- STUDENT EVALUATIONS ----
 async function loadStudentEvals() {
-  document.getElementById('studentEvals').innerHTML = '<div class="text-muted-custom">Cargando evaluaciones...</div>';
-  // Fetch results
+  const container = document.getElementById('studentEvals');
+  container.innerHTML = '<div class="text-muted-custom">Cargando evaluaciones...</div>';
+
+  const studentId = currentUser._id || currentUser.user_id || currentUser.id;
+
   try {
-    const { ok, data } = await api('GET', `/api/evaluations/student/${currentUser._id||currentUser.user_id}/course/${currentStudentCourseId}`);
-    if (ok) {
-      const results = data.submissions || [];
-      document.getElementById('studentEvals').innerHTML = results.length
-        ? `<div style="margin-bottom:16px;font-weight:600;">Resultados de Evaluaciones</div>
-          <table class="table-custom" style="background:var(--surface);border-radius:var(--radius);"><thead><tr><th>Evaluación</th><th>Fecha</th><th>Calificación</th><th>Correctas</th></tr></thead>
-          <tbody>${results.map(r => `<tr><td>${r.evaluation_id||'—'}</td><td>${formatDate(r.fecha)}</td>
-          <td style="color:${r.calificacion>=70?'var(--accent)':'var(--danger)'}; font-weight:700;">${r.calificacion?.toFixed(1)||0}%</td>
-          <td>${r.correctas||0}/${r.total_preguntas||0}</td></tr>`).join('')}</tbody></table>`
-        : '<div class="text-muted-custom">No has realizado evaluaciones aún.</div>';
+    const { ok, data } = await api(
+      'GET',
+      `/api/evaluations/course/${currentStudentCourseId}/student?studentId=${studentId}`
+    );
+
+    if (!ok) {
+      container.innerHTML = `<div class="text-muted-custom">${data.message || 'No se pudieron cargar las evaluaciones.'}</div>`;
+      return;
     }
-  } catch(e) {}
+
+    const evaluations = data.evaluations || [];
+
+    container.innerHTML = evaluations.length
+      ? evaluations.map(e => `
+        <div class="card-custom mb-2">
+          <div style="font-weight:700;">${escapeHtml(e.title)}</div>
+          <div class="text-muted-custom">${escapeHtml(e.descripcion || 'Sin descripción')}</div>
+          <div style="font-size:12px;margin-top:8px;">
+            Inicio: ${formatDate(e.startDate)} | Fin: ${formatDate(e.endDate)}
+          </div>
+          <div style="font-size:12px;">Preguntas: ${e.total_preguntas}</div>
+
+          ${
+            e.ya_realizada
+              ? `<div style="margin-top:10px;font-weight:700;">Nota: ${e.calificacion}% (${e.correctas}/${e.total_preguntas})</div>`
+              : e.disponible
+                ? `<button class="btn-primary-custom mt-2" style="width:auto;" onclick="openTakeEval('${e.evalId}')">Contestar</button>`
+                : `<div class="text-muted-custom mt-2">No disponible en este momento.</div>`
+          }
+        </div>
+      `).join('')
+      : '<div class="text-muted-custom">No hay evaluaciones disponibles.</div>';
+
+  } catch (e) {
+    container.innerHTML = '<div class="text-muted-custom">Error de conexión.</div>';
+  }
 }
 
 async function loadClassmates() {
@@ -1270,6 +1419,99 @@ async function sendQuery() {
     hideSpinner();
   }
 }
+
+
+async function openTakeEval(evalId) {
+  currentEvalId = evalId;
+  clearAlert('takeEvalAlert');
+
+  const studentId = currentUser._id || currentUser.user_id || currentUser.id;
+
+  try {
+    const { es, data } = await api(
+      'GET',
+      `/api/evaluations/${evalId}/take?studentId=${studentId}`
+    );
+
+    if (!es) {
+      showAlert('takeEvalAlert', data.message || 'No se pudo abrir la evaluación.', 'danger');
+      return;
+    }
+
+    const evaluation = data.evaluation;
+
+    document.getElementById('takeEvalTitle').textContent = evaluation.title;
+
+    document.getElementById('takeEvalQuestions').innerHTML = evaluation.preguntas.map((q, idx) => `
+      <div class="question-block">
+        <div style="font-weight:700;margin-bottom:8px;">${idx + 1}. ${escapeHtml(q.text)}</div>
+
+        ${q.options.map(o => `
+          <label class="option-row" style="cursor:pointer;">
+            <input type="radio" name="answer-${q.questionId}" value="${o.optionId}" class="option-radio">
+            <span>${escapeHtml(o.text)}</span>
+          </label>
+        `).join('')}
+      </div>
+    `).join('');
+
+    new bootstrap.Modal(document.getElementById('modalTakeEval')).show();
+
+  } catch (e) {
+    showAlert('takeEvalAlert', 'Error de conexión.', 'danger');
+  }
+}
+
+async function submitEval() {
+  clearAlert('takeEvalAlert');
+
+  const answers = [];
+  const questionBlocks = document.querySelectorAll('#takeEvalQuestions .question-block');
+
+  questionBlocks.forEach(block => {
+    const radio = block.querySelector('input[type="radio"]:checked');
+
+    if (radio) {
+      const questionId = radio.name.replace('answer-', '');
+      answers.push({
+        questionId,
+        selectedOptionId: radio.value
+      });
+    }
+  });
+
+  if (answers.length !== questionBlocks.length) {
+    return showAlert('takeEvalAlert', 'Debes responder todas las preguntas.', 'warning');
+  }
+
+  const studentId = currentUser._id || currentUser.user_id || currentUser.id;
+
+  try {
+    const { ok, data } = await api(
+      'POST',
+      `/api/evaluations/${currentEvalId}/submit`,
+      {
+        studentId,
+        answers
+      }
+    );
+
+    if (ok) {
+      bootstrap.Modal.getInstance(document.getElementById('modalTakeEval')).hide();
+      await loadStudentEvals();
+      alert(data.message);
+    } else {
+      showAlert('takeEvalAlert', data.message || 'No se pudo entregar la evaluación.', 'danger');
+    }
+
+  } catch (e) {
+    showAlert('takeEvalAlert', 'Error de conexión.', 'danger');
+  }
+}
+
+window.openTakeEval = openTakeEval;
+window.submitEval = submitEval;
+
 
 // ===============================================
 //  SOCIAL — FRIENDS
@@ -1675,31 +1917,6 @@ async function invalidateAllSessions() {
   } catch(e) { showAlert('sessionAlert', 'Error de conexión.', 'danger'); } finally { hideSpinner(); }
 }
 
-// ===============================================
-//  DB HEALTH
-// ===============================================
-async function loadHealthCheck() {
-  document.getElementById('healthGrid').innerHTML = '<div class="text-muted-custom">Verificando conexiones...</div>';
-  showSpinner();
-  try {
-    const { ok, data } = await api('GET', '/api/health');
-    const dbs = data.databases || {};
-    const dbNames = { mongodb: 'MongoDB', redis: 'Redis', neo4j: 'Neo4j', cassandra: 'Cassandra' };
-    const dbIcons = { mongodb: 'bi-database', redis: 'bi-lightning', neo4j: 'bi-diagram-3', cassandra: 'bi-hdd-stack' };
-    document.getElementById('healthGrid').innerHTML = Object.entries(dbNames).map(([key, label]) => {
-      const status = dbs[key];
-      const isOk = status === 'ok' || status === 'connected' || status === true;
-      return `<div class="health-card">
-        <i class="bi ${dbIcons[key]}" style="font-size:32px;color:${isOk?'var(--accent)':'var(--danger)'};margin-bottom:12px;"></i>
-        <div style="font-weight:700;margin-bottom:8px;">${label}</div>
-        <div><span class="health-dot ${isOk?'ok':'err'}"></span><span style="font-size:13px;color:${isOk?'var(--accent)':'var(--danger)'};">${isOk?'Conectado':'Error'}</span></div>
-        <div style="font-size:11px;font-family:var(--font-mono);color:var(--text-muted);margin-top:6px;">${typeof status === 'string' ? status : (isOk?'online':'offline')}</div>
-      </div>`;
-    }).join('');
-  } catch(e) {
-    document.getElementById('healthGrid').innerHTML = '<div class="alert-custom alert-danger"><i class="bi bi-exclamation-triangle"></i> No se pudo conectar al servidor.</div>';
-  } finally { hideSpinner(); }
-}
 
 // ===============================================
 //  ADMIN
