@@ -15,21 +15,6 @@ services:
     networks:
       - app-network
 
-  mongo:
-    image: mongo:7.0
-    restart: always
-    ports:
-      - "27017:27017"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=mongo
-      - MONGO_INITDB_ROOT_PASSWORD=mongo_pw
-      - MONGO_INITDB_DATABASE=tecdigitalito_mongo_db
-    command: ["mongod", "--wiredTigerCacheSizeGB", "0.256"]
-    volumes:
-      - mongo-data:/data/db
-    networks:
-      - app-network
-
   neo4j:
     image: neo4j:5.15-community
     restart: always
@@ -57,7 +42,6 @@ volumes:
   neo4j-data:
   cassandra-data:
   redis-data:
-  mongo-data:
 
 networks:
   app-network:

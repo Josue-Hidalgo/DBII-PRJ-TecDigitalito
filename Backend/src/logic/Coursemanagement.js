@@ -83,24 +83,48 @@ const createCourse = async ({ teacherId, code, name, description, startDate, end
 };
 
 // HU-12: Agregar sección a un curso
-const addSection = async ({ courseId, teacherId, title, parentSectionId, order }) => {
+const addSection = async ({ courseId, teacherId, title, descripcion, parentSectionId, order }) => {
     const course = await validateCourse(courseId);
     assertTeacher(course, teacherId);
 
+    if (parentSectionId) {
+        const parent = await Section.findOne({
+            _id: parentSectionId,
+            courseId
+        }).lean();
+
+        if (!parent) {
+            throw new Error('La sección padre no existe o no pertenece a este curso.');
+        }
+    }
+
     const sectionId = uuidv4();
+
     const section = new Section({
-        _id:             sectionId,
+        _id: sectionId,
         courseId,
-        title:           title.trim(),
+        title: title.trim(),
+        descripcion: descripcion?.trim() || null,
         parentSectionId: parentSectionId || null,
-        orden:           order ?? 0,
+        orden: order ?? 0,
     });
 
     await section.save();
 
     return {
+        section: {
+            _id: section._id,
+            sectionId: section._id,
+            title: section.title,
+            titulo: section.title,
+            descripcion: section.descripcion,
+            parentSectionId: section.parentSectionId,
+            parent_section_id: section.parentSectionId,
+            orden: section.orden,
+            order: section.orden
+        },
         sectionId,
-        title:   section.title,
+        title: section.title,
         message: 'Sección agregada correctamente.',
     };
 };
@@ -205,6 +229,41 @@ const getTeacherCourses = async ({ teacherId }) => {
     return { courses };
 };
 
+const getSections = async ({ courseId, teacherId }) => {
+  const course = await Course.findById(courseId);
+
+  if (!course) {
+    throw new Error('Curso no encontrado.');
+  }
+
+  if (course.docente?.user_id?.toString() !== teacherId.toString()) {
+    throw new Error('No tienes permiso para ver las secciones de este curso.');
+  }
+
+  const sections = await Section.find({ courseId }).sort({ orden: 1 }).lean();
+
+  const sectionsWithContent = await Promise.all(
+    sections.map(async (section) => {
+      const contents = await Content.find({ sectionId: section._id }).sort({ orden: 1 }).lean();
+
+      return {
+        _id: section._id,
+        sectionId: section._id,
+        title: section.title,
+        titulo: section.title,
+        descripcion: section.descripcion,
+        parentSectionId: section.parentSectionId,
+        parent_section_id: section.parentSectionId,
+        orden: section.orden,
+        order: section.orden,
+        contents
+      };
+    })
+  );
+
+  return { sections: sectionsWithContent };
+};
+
 // HU-19: Clonar un curso
 const cloneCourse = async ({ originalCourseId, teacherId, newCode, newName, newStartDate, newEndDate }) => {
     const originalCourse = await validateCourse(originalCourseId);
@@ -218,25 +277,26 @@ const cloneCourse = async ({ originalCourseId, teacherId, newCode, newName, newS
     const teacher     = await validateUser(teacherId);
     const teacherName = teacher.fullName || teacher.username || 'Docente Desconocido';
 
-    const newCourseId = uuidv4();
-    const newCourse = new Course({
-        _id:              newCourseId,
-        codigo:           newCode.trim().toUpperCase(),
-        nombre:           newName.trim(),
-        descripcion:      originalCourse.descripcion,
-        fecha_inicio:     new Date(newStartDate),
-        fecha_fin:        newEndDate ? new Date(newEndDate) : null,
-        foto:             originalCourse.foto,
-        docente: {
-            user_id: teacherId.toString(),
-            nombre:  teacherName,
-        },
-        publicado:          false,
-        estado:             'borrador',
-        original_course_id: originalCourseId,
-    });
 
-    await newCourse.save();
+const newCourse = new Course({
+    codigo:           newCode.trim().toUpperCase(),
+    nombre:           newName.trim(),
+    descripcion:      originalCourse.descripcion,
+    fecha_inicio:     new Date(newStartDate),
+    fecha_fin:        newEndDate ? new Date(newEndDate) : null,
+    foto:             originalCourse.foto,
+    docente: {
+        user_id: teacherId.toString(),
+        nombre:  teacherName,
+    },
+    publicado:          false,
+    estado:             'borrador',
+    original_course_id: originalCourseId.toString(),
+});
+
+await newCourse.save();
+
+const newCourseId = newCourse._id.toString();
 
     // Sincronizar con Neo4j
     await syncCourseToGraph({
@@ -298,5 +358,6 @@ module.exports = {
     publishCourse,
     getEnrolledStudents,
     getTeacherCourses,
+    getSections,
     cloneCourse,
 };

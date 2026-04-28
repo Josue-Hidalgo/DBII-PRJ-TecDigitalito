@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TEC Digitalito</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+<link href="assets/css/styles.css" rel="stylesheet"/>
+</head>
+<body>
+
+<!-- Spinner -->
+<div class="spinner-overlay" id="spinner"><div class="spinner-ring"></div></div>
+
+<!-- Mobile toggle -->
+<button class="menu-toggle" id="menuToggle"><i class="bi bi-list"></i></button>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div id="sidebar-logo">
+    <div class="logo-tag">TEC</div>
+    <h1>Digit<span>a</span>lito</h1>
+  </div>
+
+  <div id="sidebar-user">
+    <div class="d-flex align-items-center">
+      <div class="user-avatar" id="sidebarInitials">?</div>
+      <div>
+        <div class="user-name" id="sidebarName">Usuario</div>
+        <div class="user-tag" id="sidebarUsername">@username</div>
+      </div>
+    </div>
+  </div>
+
+  <nav id="main-nav">
+    <!-- Visible sin login -->
+    <div id="nav-guest">
+      <div class="nav-section">Acceso</div>
+      <div class="nav-item"><button class="nav-link-btn active" onclick="showPage('page-auth')"><i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión</button></div>
+    </div>
+    <!-- Visible con login -->
+    <div id="nav-user" style="display:none">
+      <div class="nav-section">General</div>
+      <div class="nav-item"><button class="nav-link-btn" onclick="showPage('page-home')"><i class="bi bi-grid-1x2"></i> Panel Principal</button></div>
+      <div class="nav-item"><button class="nav-link-btn" onclick="showPage('page-search-courses')"><i class="bi bi-search"></i> Explorar Cursos</button></div>
+      <div class="nav-section">Docente</div>
+      <div class="nav-item"><button class="nav-link-btn" onclick="showPage('page-my-courses')"><i class="bi bi-journal-text"></i> Mis Cursos</button></div>
+      <div class="nav-item"><button class="nav-link-btn" onclick="showPage('page-create-course')"><i class="bi bi-plus-circle"></i> Crear Curso</button></div>
+      <div class="nav-section">Estudiante</div>
+      <div class="nav-item"><button class="nav-link-btn" onclick="showPage('page-enrolled')"><i class="bi bi-mortarboard"></i> Mis Matrículas</button></div>
+      <div class="nav-section">Social</div>
+      <div class="nav-item"><button class="nav-link-btn" onclick="showPage('page-friends')"><i class="bi bi-people"></i> Amigos</button></div>
+      <div class="nav-item"><button class="nav-link-btn" onclick="showPage('page-messages')"><i class="bi bi-chat-dots"></i> Mensajes</button></div>
+      <div class="nav-section">Cuenta</div>
+      <div class="nav-item"><button class="nav-link-btn" onclick="showPage('page-password')"><i class="bi bi-shield-lock"></i> Contraseña</button></div>      
+      <div id="nav-admin" style="display:none">
+        <div class="nav-section">Administración</div>
+        <div class="nav-item"><button class="nav-link-btn" onclick="showPage('page-admin')"><i class="bi bi-bar-chart-line"></i> Auditoría</button></div>
+      </div>
+    </div>
+  </nav>
+
+  <div id="sidebar-footer" style="display:none" id="footer-logout">
+    <button class="btn-logout" onclick="logout()"><i class="bi bi-box-arrow-left"></i> Cerrar Sesión</button>
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main id="main-content">
+
+<!-- AUTH PAGE -->
+<div id="page-auth" class="page active" style="display:flex; min-height:100vh; align-items:center; justify-content:center; padding:0; margin-left:-260px; width:100vw;">
+  <div class="auth-card">
+    <div class="brand">
+      <div class="brand-tag">TEC</div>
+      <div class="brand-name">Digit<span>a</span>lito</div>
+      <p class="text-muted-custom mt-2">Plataforma de clases virtuales</p>
+    </div>
+
+    <div id="auth-alert"></div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Iniciar Sesión</button>
+      <button class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">Registrarse</button>
+    </div>
+
+    <!-- Login Form -->
+    <div id="form-login">
+      <div class="mb-3">
+        <label class="form-label">Usuario</label>
+        <input type="text" class="form-control" id="loginUsername" placeholder="tu_usuario"/>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Contraseña</label>
+        <input type="password" class="form-control" id="loginPassword" placeholder="••••••••"/>
+      </div>
+      <div class="mb-3 d-flex align-items-center gap-2">
+        <input type="checkbox" id="rememberMe" style="accent-color:var(--accent); width:16px; height:16px;"/>
+        <label for="rememberMe" style="font-size:13px; color:var(--text-dim)">Recordarme</label>
+      </div>
+      <button class="btn-primary-custom" onclick="doLogin()"><i class="bi bi-box-arrow-in-right"></i> Ingresar</button>
+      <div class="text-center mt-3">
+        <a href="#" style="font-size:12px; color:var(--accent); text-decoration:none;" onclick="showPage('page-forgot')">¿Olvidaste tu contraseña?</a>
+      </div>
+    </div>
+
+    <!-- Register Form -->
+    <div id="form-register" style="display:none">
+      <div class="row g-2 mb-3">
+        <div class="col-12">
+          <label class="form-label">Nombre Completo</label>
+          <input type="text" class="form-control" id="regNombre" placeholder="Juan Pérez"/>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Usuario</label>
+          <input type="text" class="form-control" id="regUsername" placeholder="juan_pérez"/>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Correo</label>
+          <input type="email" class="form-control" id="regEmail" placeholder="juan@tec.ac.cr"/>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Fecha de Nacimiento</label>
+          <input type="date" class="form-control" id="regBirth"/>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Contraseña</label>
+          <input type="password" class="form-control" id="regPassword" placeholder="Mínimo 8 caracteres"/>
+        </div>
+        <div class="col-12">
+          <label class="form-label">URL Avatar (opcional)</label>
+          <input type="text" class="form-control" id="regAvatar" placeholder="https://..."/>
+        </div>
+      </div>
+      <button class="btn-primary-custom" onclick="doRegister()"><i class="bi bi-person-plus"></i> Crear Cuenta</button>
+    </div>
+  </div>
+</div>
+
+<!-- FORGOT PASSWORD PAGE -->
+<div id="page-forgot" class="page" style="display:none; min-height:100vh; align-items:center; justify-content:center; padding:0; margin-left:-260px; width:100vw;">
+  <div class="auth-card">
+    <div class="brand">
+      <div class="brand-name">Digit<span>a</span>lito</div>
+      <p class="text-muted-custom mt-2">Recuperar Contraseña</p>
+    </div>
+    <div id="forgot-alert"></div>
+    <div class="mb-3">
+      <label class="form-label">Correo Electrónico</label>
+      <input type="email" class="form-control" id="forgotEmail" placeholder="tu@correo.com"/>
+    </div>
+    <button class="btn-primary-custom mb-3" onclick="doForgotPassword()"><i class="bi bi-envelope"></i> Enviar Enlace</button>
+    <button class="btn-outline-custom w-100" onclick="showPage('page-auth')"><i class="bi bi-arrow-left"></i> Volver</button>
+  </div>
+</div>
+<!-- RESET PASSWORD PAGE (HU-07 paso 2) -->
+<div id="page-reset" class="page" style="display:none; min-height:100vh; align-items:center; justify-content:center; padding:0; margin-left:-260px; width:100vw;">
+  <div class="auth-card">
+    <div class="brand">
+      <div class="brand-name">Digit<span>a</span>lito</div>
+      <p class="text-muted-custom mt-2">Nueva Contraseña</p>
+    </div>
+    <div id="reset-alert"></div>
+
+    <!-- Token oculto — se rellena automáticamente desde la URL -->
+    <input type="hidden" id="resetToken" value=""/>
+
+    <div class="mb-3">
+      <label class="form-label">Nueva Contraseña *</label>
+      <input type="password" class="form-control" id="resetNewPassword" placeholder="Mínimo 8 caracteres"/>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Confirmar Contraseña *</label>
+      <input type="password" class="form-control" id="resetConfirmPassword" placeholder="Repite la nueva contraseña"/>
+    </div>
+    <div class="mb-3" style="font-size:12px; color:var(--text-muted);">
+      <i class="bi bi-info-circle"></i>
+      La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un símbolo.
+    </div>
+    <button class="btn-primary-custom mb-3" onclick="doResetPassword()">
+      <i class="bi bi-shield-check"></i> Guardar Nueva Contraseña
+    </button>
+    <button class="btn-outline-custom w-100" onclick="showPage('page-auth')">
+      <i class="bi bi-arrow-left"></i> Volver al inicio de sesión
+    </button>
+  </div>
+</div>
+
+<!-- HOME / DASHBOARD -->
+<div id="page-home" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Panel Principal</div>
+      <div class="page-subtitle">Bienvenido de vuelta, <span id="homeWelcomeName" class="text-accent">usuario</span></div>
+    </div>
+    <button class="btn-outline-custom" onclick="showPage('page-create-course')"><i class="bi bi-plus-lg"></i> Nuevo Curso</button>
+  </div>
+
+  <div class="gap-grid grid-4 mb-4">
+    <div class="stat-card">
+      <div class="stat-icon green"><i class="bi bi-journal-text"></i></div>
+      <div><div class="stat-value" id="statCourses">0</div><div class="stat-label">Cursos creados</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon blue"><i class="bi bi-mortarboard"></i></div>
+      <div><div class="stat-value" id="statEnrolled">0</div><div class="stat-label">Matrículas activas</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon yellow"><i class="bi bi-people"></i></div>
+      <div><div class="stat-value" id="statFriends">0</div><div class="stat-label">Amigos</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon red"><i class="bi bi-chat-dots"></i></div>
+      <div><div class="stat-value" id="statMessages">0</div><div class="stat-label">Mensajes</div></div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="card-custom">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div style="font-weight:700; font-size:15px;">Mis Cursos Recientes</div>
+          <button class="btn-outline-custom" onclick="showPage('page-my-courses')" style="padding:6px 14px; font-size:12px;">Ver todos</button>
+        </div>
+        <div id="homeRecentCourses"><div class="text-muted-custom">Cargando...</div></div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card-custom">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div style="font-weight:700; font-size:15px;">Cursos Matriculados</div>
+          <button class="btn-outline-custom" onclick="showPage('page-enrolled')" style="padding:6px 14px; font-size:12px;">Ver todos</button>
+        </div>
+        <div id="homeEnrolledCourses"><div class="text-muted-custom">Cargando...</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CREATE / EDIT COURSE -->
+<div id="page-create-course" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title" id="createCourseTitle">Crear Curso</div>
+      <div class="page-subtitle">Completa la información del nuevo curso</div>
+    </div>
+  </div>
+  <div class="card-custom" style="max-width:720px;">
+    <div id="createCourseAlert"></div>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label">Código del Curso *</label>
+        <input type="text" class="form-control" id="courseCode" placeholder="CS-101"/>
+      </div>
+      <div class="col-md-8">
+        <label class="form-label">Nombre del Curso *</label>
+        <input type="text" class="form-control" id="courseName" placeholder="Introducción a la Programación"/>
+      </div>
+      <div class="col-12">
+        <label class="form-label">Descripción *</label>
+        <textarea class="form-control" id="courseDesc" rows="3" placeholder="Describe el contenido y objetivos del curso..."></textarea>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Fecha de Inicio *</label>
+        <input type="date" class="form-control" id="courseStart"/>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Fecha de Fin <span class="text-muted-custom">(opcional)</span></label>
+        <input type="date" class="form-control" id="courseEnd"/>
+      </div>
+      <div class="col-12">
+        <label class="form-label">URL de Foto del Curso</label>
+        <input type="text" class="form-control" id="coursePhoto" placeholder="https://..."/>
+      </div>
+    </div>
+    <div class="mt-4 d-flex gap-2">
+      <button class="btn-primary-custom" style="width:auto; padding:10px 28px;" onclick="saveCourse()"><i class="bi bi-check-lg"></i> Guardar Curso</button>
+      <button class="btn-outline-custom" onclick="showPage('page-my-courses')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MY COURSES (TEACHER) -->
+<div id="page-my-courses" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Mis Cursos</div>
+      <div class="page-subtitle">Cursos que has creado como docente</div>
+    </div>
+    <button class="btn-primary-custom" style="width:auto;" onclick="showPage('page-create-course')"><i class="bi bi-plus-lg"></i> Nuevo Curso</button>
+  </div>
+  <div id="myCoursesAlert"></div>
+  <div id="myCoursesGrid" class="gap-grid grid-3">
+    <div class="text-muted-custom">Cargando cursos...</div>
+  </div>
+</div>
+
+<!-- COURSE DETAIL (TEACHER) -->
+<div id="page-course-detail" class="page">
+  <div class="page-header">
+    <div>
+      <div style="font-family:var(--font-mono); font-size:11px; color:var(--accent); letter-spacing:1px;" id="detailCode">CS-101</div>
+      <div class="page-title" id="detailName">Nombre del Curso</div>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <button class="btn-outline-custom" id="btnPublish" onclick="publishCourse()"><i class="bi bi-send"></i> Publicar</button>
+      <button class="btn-outline-custom" onclick="showCloneModal()"><i class="bi bi-files"></i> Clonar</button>
+      <button class="btn-outline-custom" onclick="showPage('page-my-courses')"><i class="bi bi-arrow-left"></i> Volver</button>
+    </div>
+  </div>
+
+  <div id="courseDetailAlert"></div>
+
+  <!-- Tabs -->
+  <div class="d-flex gap-1 mb-4" style="border-bottom:1px solid var(--border);">
+    <button class="nav-link-btn active" id="dtab-sections" onclick="switchDetailTab('sections')" style="width:auto; border-radius:var(--radius-sm) var(--radius-sm) 0 0;">Secciones</button>
+    <button class="nav-link-btn" id="dtab-evaluations" onclick="switchDetailTab('evaluations')" style="width:auto; border-radius:var(--radius-sm) var(--radius-sm) 0 0;">Evaluaciones</button>
+    <button class="nav-link-btn" id="dtab-students" onclick="switchDetailTab('students')" style="width:auto; border-radius:var(--radius-sm) var(--radius-sm) 0 0;">Estudiantes</button>
+    <button class="nav-link-btn" id="dtab-messages" onclick="switchDetailTab('messages')" style="width:auto; border-radius:var(--radius-sm) var(--radius-sm) 0 0;">Consultas</button>
+  </div>
+
+  <!-- Sections Tab -->
+  <div id="detail-tab-sections">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div style="font-weight:600;">Estructura del Curso</div>
+      <button class="btn-outline-custom" onclick="showAddSectionModal(null)"><i class="bi bi-plus"></i> Nueva Sección</button>
+    </div>
+    <div id="sectionsList"><div class="text-muted-custom">Sin secciones aún</div></div>
+  </div>
+
+  <!-- Evaluations Tab -->
+  <div id="detail-tab-evaluations" style="display:none">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div style="font-weight:600;">Evaluaciones</div>
+      <button class="btn-outline-custom" onclick="showAddEvaluationModal()"><i class="bi bi-plus"></i> Nueva Evaluación</button>
+    </div>
+    <div id="evalList"><div class="text-muted-custom">Sin evaluaciones</div></div>
+  </div>
+
+  <!-- Students Tab -->
+  <div id="detail-tab-students" style="display:none">
+    <div id="studentsList"><div class="text-muted-custom">Cargando...</div></div>
+  </div>
+
+  <!-- Messages Tab -->
+  <div id="detail-tab-messages" style="display:none">
+    <div id="courseThreadsList"><div class="text-muted-custom">Sin consultas</div></div>
+  </div>
+</div>
+
+<!-- SEARCH COURSES (STUDENT) -->
+<div id="page-search-courses" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Explorar Cursos</div>
+      <div class="page-subtitle">Busca y matricula en cursos disponibles</div>
+    </div>
+  </div>
+  <div class="d-flex gap-2 mb-4 flex-wrap">
+    <div class="search-box flex-grow-1">
+      <i class="bi bi-search"></i>
+      <input type="text" class="form-control" id="searchQuery" placeholder="Buscar cursos..." onkeyup="if(event.key==='Enter') searchCourses()"/>
+    </div>
+    <button class="btn-primary-custom" style="width:auto;" onclick="searchCourses()"><i class="bi bi-search"></i> Buscar</button>
+  </div>
+  <div id="searchAlert"></div>
+  <div id="searchResults" class="gap-grid grid-3">
+    <div class="text-muted-custom">Ingresa un término para buscar</div>
+  </div>
+</div>
+
+<!-- ENROLLED COURSES (STUDENT) -->
+<div id="page-enrolled" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Mis Matrículas</div>
+      <div class="page-subtitle">Cursos en los que estás matriculado</div>
+    </div>
+  </div>
+  <div id="enrolledGrid" class="gap-grid grid-3">
+    <div class="text-muted-custom">Cargando...</div>
+  </div>
+</div>
+
+<!-- STUDENT COURSE VIEW -->
+<div id="page-student-course" class="page">
+  <div class="page-header">
+    <div>
+      <div style="font-family:var(--font-mono); font-size:11px; color:var(--accent); letter-spacing:1px;" id="studentDetailCode">CS-101</div>
+      <div class="page-title" id="studentDetailName">Nombre del Curso</div>
+    </div>
+    <button class="btn-outline-custom" onclick="showPage('page-enrolled')"><i class="bi bi-arrow-left"></i> Volver</button>
+  </div>
+
+  <div class="d-flex gap-1 mb-4" style="border-bottom:1px solid var(--border);">
+    <button class="nav-link-btn active" id="stab-content" onclick="switchStudentTab('content')" style="width:auto; border-radius:var(--radius-sm) var(--radius-sm) 0 0;">Contenido</button>
+    <button class="nav-link-btn" id="stab-evaluations" onclick="switchStudentTab('evaluations')" style="width:auto; border-radius:var(--radius-sm) var(--radius-sm) 0 0;">Evaluaciones</button>
+    <button class="nav-link-btn" id="stab-classmates" onclick="switchStudentTab('classmates')" style="width:auto; border-radius:var(--radius-sm) var(--radius-sm) 0 0;">Compañeros</button>
+    <button class="nav-link-btn" id="stab-queries" onclick="switchStudentTab('queries')" style="width:auto; border-radius:var(--radius-sm) var(--radius-sm) 0 0;">Consultas</button>
+  </div>
+
+  <div id="student-tab-content">
+    <div id="studentSections"><div class="text-muted-custom">Cargando contenido...</div></div>
+  </div>
+  <div id="student-tab-evaluations" style="display:none">
+    <div id="studentEvals"><div class="text-muted-custom">Sin evaluaciones disponibles</div></div>
+  </div>
+  <div id="student-tab-classmates" style="display:none">
+    <div id="classmatesList"><div class="text-muted-custom">Cargando...</div></div>
+  </div>
+  <div id="student-tab-queries" style="display:none">
+    <div id="queryThreadsList"><div class="text-muted-custom">Sin consultas</div></div>
+    <div class="card-custom mt-3">
+      <div style="font-weight:600; margin-bottom:12px;">Nueva Consulta</div>
+      <textarea class="form-control mb-2" id="newQueryText" rows="3" placeholder="Escribe tu consulta al docente..."></textarea>
+      <button class="btn-primary-custom" style="width:auto;" onclick="sendQuery()"><i class="bi bi-send"></i> Enviar Consulta</button>
+    </div>
+  </div>
+</div>
+
+<!-- FRIENDS & SOCIAL -->
+<div id="page-friends" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Amigos</div>
+      <div class="page-subtitle">Gestiona tus conexiones en la plataforma</div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-md-5">
+      <div class="card-custom">
+        <div style="font-weight:700; margin-bottom:16px;">Buscar Usuarios</div>
+        <div class="d-flex gap-2 mb-3">
+          <input type="text" class="form-control" id="searchUserQuery" placeholder="Buscar por nombre o usuario..." onkeyup="if(event.key==='Enter') searchUsers()"/>
+          <button class="btn-outline-custom" onclick="searchUsers()"><i class="bi bi-search"></i></button>
+        </div>
+        <div id="userSearchResults"></div>
+      </div>
+    </div>
+    <div class="col-md-7">
+      <div class="card-custom">
+        <div style="font-weight:700; margin-bottom:16px;">Solicitudes de Amistad</div>
+          <div id="friendRequestsList" style="margin-bottom:20px;"></div>
+
+        <div style="font-weight:700; margin-bottom:16px;">Mis Amigos</div>
+        <div id="friendsList">
+      </div>   
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DIRECT MESSAGES -->
+<div id="page-messages" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Mensajes</div>
+      <div class="page-subtitle">Conversaciones directas con otros usuarios</div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-md-4">
+      <div class="card-custom">
+        <input type="text" class="form-control mb-2" id="newMsgUsername" placeholder="Username del usuario"/>
+        <button class="btn-outline-custom w-100" onclick="openConversationByUsername()">Abrir Chat</button>
+      </div>
+    </div>
+    <div class="col-md-8">
+      <div class="card-custom" id="chatPanel" style="display:none;">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <div class="friend-avatar" id="chatAvatarInitial" style="width:36px;height:36px;font-size:14px;">?</div>
+          <div><div style="font-weight:600;" id="chatWithName">Usuario</div><div style="font-size:11px;color:var(--text-muted);" id="chatWithId"></div></div>
+        </div>
+        <div class="chat-window" id="chatMessages"></div>
+        <div class="d-flex gap-2">
+          <input type="text" class="form-control" id="msgInput" placeholder="Escribe un mensaje..." onkeyup="if(event.key==='Enter') sendDirectMessage()"/>
+          <button class="btn-primary-custom" style="width:auto; padding:10px 16px;" onclick="sendDirectMessage()"><i class="bi bi-send"></i></button>
+        </div>
+      </div>
+      <div class="card-custom" id="chatPlaceholder">
+        <div class="text-center py-5">
+          <i class="bi bi-chat-dots" style="font-size:48px; color:var(--border);"></i>
+          <div class="text-muted-custom mt-3">Selecciona una conversación</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PASSWORD CHANGE -->
+<div id="page-password" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Seguridad</div>
+      <div class="page-subtitle">Gestiona la seguridad de tu cuenta</div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="card-custom">
+        <div style="font-weight:700; margin-bottom:20px;">Cambiar Contraseña</div>
+        <div id="pwChangeAlert"></div>
+        <div class="mb-3">
+          <label class="form-label">Contraseña Actual *</label>
+          <input type="password" class="form-control" id="pwCurrent" placeholder="••••••••"/>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Nueva Contraseña *</label>
+          <input type="password" class="form-control" id="pwNew" placeholder="Mínimo 8 caracteres"/>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Confirmar Nueva Contraseña *</label>
+          <input type="password" class="form-control" id="pwConfirm" placeholder="Repite la nueva contraseña"/>
+        </div>
+        <button class="btn-primary-custom" onclick="changePassword()"><i class="bi bi-shield-check"></i> Actualizar Contraseña</button>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card-custom">
+        <div style="font-weight:700; margin-bottom:20px;">Sesiones Activas</div>
+        <p class="text-muted-custom mb-3">Cierra todas las sesiones activas en otros dispositivos.</p>
+        <div id="sessionAlert"></div>
+        <button class="btn-danger-custom" onclick="invalidateAllSessions()" style="padding:10px 20px; font-size:13px;"><i class="bi bi-shield-x"></i> Cerrar Todas las Sesiones</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DB HEALTH -->
+<div id="page-health" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Estado de Bases de Datos</div>
+      <div class="page-subtitle">Monitor de salud del sistema</div>
+    </div>
+    <button class="btn-outline-custom" onclick="loadHealthCheck()"><i class="bi bi-arrow-clockwise"></i> Actualizar</button>
+  </div>
+  <div id="healthGrid" class="gap-grid grid-4">
+    <div class="text-muted-custom">Verificando conexiones...</div>
+  </div>
+</div>
+
+<!-- ADMIN AUDIT -->
+<div id="page-admin" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Auditoría del Sistema</div>
+      <div class="page-subtitle">Registro de actividad y seguridad</div>
+    </div>
+  </div>
+
+  <div class="d-flex gap-1 mb-4" style="border-bottom:1px solid var(--border);">
+    <button class="nav-link-btn active" id="atab-activity" onclick="switchAdminTab('activity')" style="width:auto; border-radius:var(--radius-sm) var(--radius-sm) 0 0;">Actividad por Usuario</button>
+    <button class="nav-link-btn" id="atab-security" onclick="switchAdminTab('security')" style="width:auto; border-radius:var(--radius-sm) var(--radius-sm) 0 0;">Eventos de Seguridad</button>
+    <button class="nav-link-btn" id="atab-audit" onclick="switchAdminTab('audit')" style="width:auto; border-radius:var(--radius-sm) var(--radius-sm) 0 0;">Audit Trail</button>
+    <button class="nav-link-btn" id="atab-logins" onclick="switchAdminTab('logins')" style="width:auto; border-radius:var(--radius-sm) var(--radius-sm) 0 0;">Login Attempts</button>
+  </div>
+
+  <div id="admin-tab-activity">
+    <div class="d-flex gap-2 mb-3">
+      <input type="text" class="form-control" id="adminUserId" placeholder="User ID" style="max-width:300px;"/>
+      <button class="btn-outline-custom" onclick="loadUserActivity()">Cargar</button>
+    </div>
+    <div id="activityTable"></div>
+  </div>
+  <div id="admin-tab-security" style="display:none">
+    <button class="btn-outline-custom mb-3" onclick="loadSecurityEvents()"><i class="bi bi-arrow-clockwise"></i> Cargar Eventos</button>
+    <div id="securityTable"></div>
+  </div>
+  <div id="admin-tab-audit" style="display:none">
+    <div class="d-flex gap-2 mb-3">
+      <input type="text" class="form-control" id="auditTable" placeholder="Nombre tabla (ej: login_attempts_by_user)" style="max-width:340px;"/>
+      <button class="btn-outline-custom" onclick="loadAuditTrail()">Cargar</button>
+    </div>
+    <div id="auditTrailTable"></div>
+  </div>
+  <div id="admin-tab-logins" style="display:none">
+    <div class="d-flex gap-2 mb-3">
+      <input type="text" class="form-control" id="loginAttemptUserId" placeholder="User ID o IP" style="max-width:300px;"/>
+      <button class="btn-outline-custom" onclick="loadLoginAttempts()">Por Usuario</button>
+      <button class="btn-outline-custom" onclick="loadLoginAttemptsByIp()">Por IP</button>
+    </div>
+    <div id="loginAttemptsTable"></div>
+  </div>
+</div>
+
+</main>
+
+<!-- MODALS -->
+
+<!-- Add Section Modal -->
+<div class="modal fade" id="modalSection" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Nueva Sección</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div id="sectionModalAlert"></div>
+        <input type="hidden" id="sectionParentId"/>
+        <div class="mb-3"><label class="form-label">Título *</label><input type="text" class="form-control" id="sectionTitle" placeholder="Nombre de la sección"/></div>
+        <div class="mb-3"><label class="form-label">Descripción</label><textarea class="form-control" id="sectionDesc" rows="2" placeholder="Descripción opcional..."></textarea></div>
+        <div class="mb-3"><label class="form-label">Orden</label><input type="number" class="form-control" id="sectionOrder" value="1" min="1"/></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-outline-custom" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn-primary-custom" style="width:auto; padding:9px 20px;" onclick="saveSection()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Content Modal -->
+<div class="modal fade" id="modalContent" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Agregar Contenido</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div id="contentModalAlert"></div>
+        <input type="hidden" id="contentSectionId"/>
+        <div class="mb-3">
+          <label class="form-label">Tipo de Contenido *</label>
+          <select class="form-select" id="contentType" onchange="toggleContentFields()">
+            <option value="texto">Texto</option>
+            <option value="documento">Documento</option>
+            <option value="video">Video</option>
+            <option value="imagen">Imagen</option>
+          </select>
+        </div>
+        <div id="textContent">
+          <label class="form-label">Contenido de Texto</label>
+          <textarea class="form-control" id="contentText" rows="5" placeholder="Escribe el contenido aquÃ\xad..."></textarea>
+        </div>
+        <div id="urlContent" style="display:none">
+          <div class="mb-3"><label class="form-label">URL del Recurso *</label><input type="text" class="form-control" id="contentUrl" placeholder="https://..."/></div>
+          <div class="mb-3"><label class="form-label">Nombre del Archivo</label><input type="text" class="form-control" id="contentFilename" placeholder="archivo.pdf"/></div>
+          <div id="videoDuration" style="display:none"><label class="form-label">Duración (segundos)</label><input type="number" class="form-control" id="contentDuration" min="0"/></div>
+          <div class="mb-3"><label class="form-label">MIME Type</label><input type="text" class="form-control" id="contentMime" placeholder="application/pdf, video/mp4, image/png..."/></div>
+        </div>
+        <div class="mt-3"><label class="form-label">Orden</label><input type="number" class="form-control" id="contentOrder" value="1" min="1"/></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-outline-custom" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn-primary-custom" style="width:auto; padding:9px 20px;" onclick="saveContent()">Agregar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Evaluation Modal -->
+<div class="modal fade" id="modalEvaluation" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Nueva Evaluación</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div id="evalModalAlert"></div>
+        <div class="row g-3 mb-4">
+          <div class="col-md-8"><label class="form-label">Título *</label><input type="text" class="form-control" id="evalTitle" placeholder="Evaluación #1"/></div>
+          <div class="col-md-4"><label class="form-label">Descripción</label><input type="text" class="form-control" id="evalDesc" placeholder="Instrucciones..."/></div>
+          <div class="col-md-6"><label class="form-label">Fecha de Inicio *</label><input type="datetime-local" class="form-control" id="evalStart"/></div>
+          <div class="col-md-6"><label class="form-label">Fecha de Fin *</label><input type="datetime-local" class="form-control" id="evalEnd"/></div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div style="font-weight:700;">Preguntas</div>
+          <button class="btn-outline-custom" onclick="addQuestion()"><i class="bi bi-plus"></i> Agregar Pregunta</button>
+        </div>
+        <div id="questionsContainer"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-outline-custom" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn-primary-custom" style="width:auto; padding:9px 20px;" onclick="saveEvaluation()">Crear Evaluación</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Take Evaluation Modal -->
+<div class="modal fade" id="modalTakeEval" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title" id="takeEvalTitle">Evaluación</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div id="takeEvalAlert"></div>
+        <div id="takeEvalQuestions"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-outline-custom" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn-primary-custom" style="width:auto; padding:9px 20px;" onclick="submitEval()">Entregar Evaluación</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Clone Course Modal -->
+<div class="modal fade" id="modalClone" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Clonar Curso</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div id="cloneAlert"></div>
+        <p class="text-muted-custom mb-3">Los materiales se copiarán. Debes cambiar el nombre, código y fechas.</p>
+        <div class="mb-3"><label class="form-label">Nuevo Código *</label><input type="text" class="form-control" id="cloneCode" placeholder="CS-102"/></div>
+        <div class="mb-3"><label class="form-label">Nuevo Nombre *</label><input type="text" class="form-control" id="cloneName" placeholder="Nombre del nuevo curso"/></div>
+        <div class="mb-3"><label class="form-label">Fecha de Inicio *</label><input type="date" class="form-control" id="cloneStart"/></div>
+        <div class="mb-3"><label class="form-label">Fecha de Fin</label><input type="date" class="form-control" id="cloneEnd"/></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-outline-custom" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn-primary-custom" style="width:auto; padding:9px 20px;" onclick="doClone()">Clonar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Friend Courses Modal -->
+<div class="modal fade" id="modalFriendCourses" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title" id="friendCoursesTitle">Cursos de Amigo</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body"><div id="friendCoursesList"></div></div>
+    </div>
+  </div>
+</div>
+
+<div id="friendRequestsList"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/main.js"></script>
+</body>
+</html>

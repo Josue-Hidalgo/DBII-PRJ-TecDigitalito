@@ -31,7 +31,7 @@ const initSchema = async () => {
   // Keyspace con replicación simple (ajustar factor según entorno)
   await client.execute(`
     CREATE KEYSPACE IF NOT EXISTS ${KEYSPACE}
-    WITH replication = { 'class': 'SimpleStrategy', 'replication_factor': '3' }
+    WITH replication = { 'class': 'SimpleStrategy', 'replication_factor': '1' }
   `);
 
   // Usar el keyspace
@@ -103,7 +103,7 @@ const initSchema = async () => {
       old_values  map<text, text>,
       new_values  map<text, text>,
       ip          text,
-      PRIMARY KEY (table_name, record_id, timestamp)
+      PRIMARY KEY ((table_name, record_id), timestamp)
     ) WITH CLUSTERING ORDER BY (timestamp DESC)`,
 
     // Punto Extra: audit global por fecha (vista admin)
@@ -116,7 +116,7 @@ const initSchema = async () => {
       operation  text,
       user_id    text,
       ip         text,
-      PRIMARY KEY (fecha, timestamp, event_id)
+      PRIMARY KEY ((fecha, event_id), timestamp)
     ) WITH CLUSTERING ORDER BY (timestamp DESC)`,
   ];
 

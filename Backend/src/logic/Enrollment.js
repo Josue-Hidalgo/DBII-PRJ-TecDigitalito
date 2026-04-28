@@ -23,7 +23,7 @@ const validateCourse = async (courseId) => {
 // HU-20: Buscar cursos publicados
 const searchCourses = async ({ query, limit = 20 }) => {
     let searchFilter = { publicado: true };
-    
+
     if (query && query.trim()) {
         const searchTerm = query.trim();
         searchFilter.$or = [
@@ -34,31 +34,49 @@ const searchCourses = async ({ query, limit = 20 }) => {
     }
 
     const courses = await Course.find(searchFilter)
-        .select('codigo nombre descripcion foto fechaInicio fechaFin profesorId')
-        .populate('profesorId', 'username fullName avatar')
+        .select('codigo nombre descripcion foto fecha_inicio fecha_fin docente publicado')
         .limit(limit)
         .sort({ nombre: 1 });
 
-    return { courses };
+    const coursesWithTeacher = await Promise.all(
+        courses.map(async (course) => {
+            const obj = course.toObject();
+
+            const teacher = await User.findById(course.docente?.user_id)
+                .select('username fullName avatar');
+
+            obj.profesor = teacher ? {
+                userId: teacher._id,
+                username: teacher.username,
+                fullName: teacher.fullName,
+                avatar: teacher.avatar
+            } : {
+                userId: course.docente?.user_id,
+                fullName: course.docente?.nombre
+            };
+
+            return obj;
+        })
+    );
+
+    return { courses: coursesWithTeacher };
 };
 
 // HU-21: Matricularse en un curso
 const enrollInCourse = async ({ studentId, courseId }) => {
-    // Validar estudiante y curso
     await validateUser(studentId);
     const course = await validateCourse(courseId);
 
-    // Verificar que el curso esté publicado
     if (!course.publicado) {
         throw new Error('No puedes matricularte en un curso que no está publicado.');
     }
 
-    // Verificar que no esté ya matriculado
-    const existingEnrollment = await Enrollment.findOne({ 
-        studentId, 
-        courseId, 
+    const existingEnrollment = await Enrollment.findOne({
+        studentId,
+        courseId,
         estado: { $in: ['activo', 'completado'] }
     });
+
     if (existingEnrollment) {
         if (existingEnrollment.estado === 'activo') {
             throw new Error('Ya estás matriculado en este curso.');
@@ -67,13 +85,13 @@ const enrollInCourse = async ({ studentId, courseId }) => {
         }
     }
 
-    // Verificar que no sea el docente
-    if (course.profesorId.toString() === studentId) {
+    // Verificar que el usuario no sea el docente del curso
+    if (course.docente?.user_id?.toString() === studentId.toString()) {
         throw new Error('El docente no puede matricularse en su propio curso.');
     }
 
-    // Crear matrícula
     const enrollmentId = uuidv4();
+
     const enrollment = new Enrollment({
         _id: enrollmentId,
         studentId,
@@ -84,7 +102,6 @@ const enrollInCourse = async ({ studentId, courseId }) => {
 
     await enrollment.save();
 
-    // Sincronizar con Neo4j
     await syncEnrollmentToGraph({ userId: studentId, courseId });
 
     return {
@@ -98,94 +115,111 @@ const enrollInCourse = async ({ studentId, courseId }) => {
 const getEnrolledCourses = async ({ studentId }) => {
     await validateUser(studentId);
 
-    const enrollments = await Enrollment.find({ 
-        studentId, 
-        estado: 'activo' 
-    })
-    .populate({
-        path: 'courseId',
-        match: { publicado: true },
-        select: 'codigo nombre descripcion foto fechaInicio fechaFin profesorId estado',
-        populate: {
-            path: 'profesorId',
-            select: 'username fullName avatar'
-        }
-    })
-    .sort({ enrolledAt: -1 });
+    const enrollments = await Enrollment.find({
+        studentId,
+        estado: 'activo'
+    }).sort({ enrolledAt: -1 });
 
-    // Filtrar cursos que no estén publicados (por el match en populate)
-    const courses = enrollments
-        .filter(e => e.courseId)
-        .map(e => ({
-            ...e.courseId.toObject(),
-            enrolledAt: e.enrolledAt,
-            estado: e.estado
-        }));
+    const courses = await Promise.all(
+        enrollments.map(async (e) => {
+            const courseDoc = await Course.findOne({
+                _id: e.courseId,
+                publicado: true
+            }).select('codigo nombre descripcion foto fecha_inicio fecha_fin docente estado publicado');
 
-    return { courses };
+            if (!courseDoc) {
+                return null;
+            }
+
+            const course = courseDoc.toObject();
+
+            const teacher = await User.findById(courseDoc.docente?.user_id)
+                .select('username fullName avatar');
+
+            course.profesor = teacher ? {
+                userId: teacher._id,
+                username: teacher.username,
+                fullName: teacher.fullName,
+                avatar: teacher.avatar
+            } : {
+                userId: courseDoc.docente?.user_id,
+                fullName: courseDoc.docente?.nombre
+            };
+
+            return {
+                ...course,
+                enrolledAt: e.enrolledAt,
+                estadoMatricula: e.estado
+            };
+        })
+    );
+
+    return {
+        courses: courses.filter(c => c !== null)
+    };
 };
 
 // HU-23: Ver contenido de un curso matriculado
 const getCourseContent = async ({ studentId, courseId }) => {
-    // Validar estudiante
     await validateUser(studentId);
 
-    // Validar curso
     const course = await validateCourse(courseId);
 
-    // Verificar que esté publicado
     if (!course.publicado) {
         throw new Error('El curso no está disponible.');
     }
 
-    // Verificar matrícula activa
-    const enrollment = await Enrollment.findOne({ 
-        studentId, 
-        courseId, 
-        estado: 'activo' 
+    const enrollment = await Enrollment.findOne({
+        studentId,
+        courseId,
+        estado: 'activo'
     });
+
     if (!enrollment) {
         throw new Error('No estás matriculado en este curso o tu matrícula no está activa.');
     }
 
-    // Obtener información básica del curso
     const courseInfo = {
         courseId: course._id,
         codigo: course.codigo,
         nombre: course.nombre,
         descripcion: course.descripcion,
         foto: course.foto,
-        fechaInicio: course.fechaInicio,
-        fechaFin: course.fechaFin,
-        profesorId: course.profesorId
+        fechaInicio: course.fecha_inicio,
+        fechaFin: course.fecha_fin,
+        docente: course.docente
     };
 
-    // Poblar información del profesor
-    const professor = await User.findById(course.profesorId).select('username fullName avatar');
+    const professor = await User.findById(course.docente?.user_id)
+        .select('username fullName avatar');
+
     if (professor) {
         courseInfo.profesor = {
+            userId: professor._id,
             username: professor.username,
             fullName: professor.fullName,
             avatar: professor.avatar
         };
+    } else {
+        courseInfo.profesor = {
+            userId: course.docente?.user_id,
+            fullName: course.docente?.nombre
+        };
     }
 
-    // Obtener secciones y contenido recursivamente
     const getSectionsWithContent = async (parentSectionId = null) => {
-        const sections = await Section.find({ 
-            courseId, 
-            parentSectionId 
-        }).sort({ order: 1 });
+        const sections = await Section.find({
+            courseId,
+            parentSectionId
+        }).sort({ orden: 1 });
 
         const sectionsWithContent = [];
-        
+
         for (const section of sections) {
-            // Obtener contenido de esta sección
-            const contents = await Content.find({ sectionId }).sort({ order: 1 });
-            
-            // Obtener subsecciones recursivamente
+            const contents = await Content.find({ sectionId: section._id }).sort({ orden: 1 });
+
             const subsections = await getSectionsWithContent(section._id);
-            
+
             sectionsWithContent.push({
                 sectionId: section._id,
                 title: section.title,
@@ -199,7 +233,7 @@ const getCourseContent = async ({ studentId, courseId }) => {
                 subsections
             });
         }
-        
+
         return sectionsWithContent;
     };
 
@@ -212,9 +246,8 @@ const getCourseContent = async ({ studentId, courseId }) => {
     };
 };
 
-// HU-26: Ver compañeros de curso (delegado a Neo4j)
+// HU-26: Ver compañeros de curso
 const getCoursemates = async ({ studentId, courseId }) => {
-    // Esta función está implementada en Neo4j.model.js y expuesta a través de Social.js
     const { getCoursemates } = require('./Social');
     return getCoursemates({ userId: studentId, courseId });
 };

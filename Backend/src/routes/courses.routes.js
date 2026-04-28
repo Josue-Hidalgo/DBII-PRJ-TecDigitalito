@@ -1,9 +1,12 @@
 const express = require('express');
 const router = express.Router();
+
+
 const {
   createCourse,
   addSection,
   addContent,
+  getSections,
   publishCourse,
   getEnrolledStudents,
   getTeacherCourses,
@@ -32,5 +35,7 @@ router.get('/teacher/:teacherId', getTeacherCourses);
 
 // HU-19 — Clonar un curso
 router.post('/:courseId/clone', cloneCourse);
+
+router.get('/:courseId/sections', getSections);
 
 module.exports = router;

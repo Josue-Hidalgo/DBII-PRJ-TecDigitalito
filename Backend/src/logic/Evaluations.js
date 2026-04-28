@@ -24,7 +24,7 @@ const User        = require('../models/User.model');
 const assertTeacher = async (courseId, teacherId) => {
   const course = await Course.findById(courseId).lean();
   if (!course) throw new Error('Curso no encontrado.');
-  if (course.profesorId !== teacherId && course.docente?.user_id !== teacherId) {
+  if (course.docente.user_id !== teacherId && course.docente?.user_id !== teacherId) {
     throw new Error('No tienes permiso para realizar esta acción en el curso.');
   }
   return course;

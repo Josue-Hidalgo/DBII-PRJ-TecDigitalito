@@ -56,7 +56,7 @@ const assertEnrolled = async (courseId, studentId) => {
  * Verifica si un usuario es docente del curso.
  */
 const isTeacher = (course, userId) =>
-  course.profesorId === userId || course.docente?.user_id === userId;
+  course.docente.user_id === userId || course.docente?.user_id === userId;
 
 /**
  * Verifica que el usuario tenga acceso al hilo:
@@ -114,7 +114,7 @@ const sendCourseQuery = async ({ courseId, senderId, text, threadId = null }) =>
       _id:       newThreadId,
       courseId,
       studentId: senderId,
-      teacherId: course.profesorId || course.docente?.user_id,
+      teacherId: course.docente.user_id || course.docente?.user_id,
       subject:   text.trim().substring(0, 80),
       status:    'open',
       createdAt: new Date(),

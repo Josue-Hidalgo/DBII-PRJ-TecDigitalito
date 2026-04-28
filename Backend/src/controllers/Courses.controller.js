@@ -5,6 +5,7 @@ const {
   publishCourse,
   getEnrolledStudents,
   getTeacherCourses,
+  getSections,
   cloneCourse,
 } = require('../logic/Coursemanagement');
 
@@ -27,10 +28,26 @@ exports.createCourse = async (req, res) => {
 exports.addSection = async (req, res) => {
   try {
     const { courseId } = req.params;
-    const { teacherId, title, parentSectionId, order } = req.body;
-    if (!teacherId || !title) return res.status(400).json({ message: 'Faltan campos.' });
 
-    const result = await addSection({ courseId, teacherId, title, parentSectionId, order });
+    const teacherId = req.body.teacherId;
+    const title = req.body.title || req.body.titulo;
+    const descripcion = req.body.descripcion || req.body.description || '';
+    const parentSectionId = req.body.parentSectionId || req.body.parent_section_id || null;
+    const order = req.body.order ?? req.body.orden ?? 0;
+
+    if (!teacherId || !title) {
+      return res.status(400).json({ message: 'Faltan campos: teacherId y title son requeridos.' });
+    }
+
+    const result = await addSection({
+      courseId,
+      teacherId,
+      title,
+      descripcion,
+      parentSectionId,
+      order
+    });
+
     res.status(201).json(result);
   } catch (error) {
     const status = error.message.includes('no encontrado') ? 404 : 500;
@@ -91,6 +108,24 @@ exports.getTeacherCourses = async (req, res) => {
     res.json(result);
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+exports.getSections = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const { teacherId } = req.query;
+
+    if (!courseId || !teacherId) {
+      return res.status(400).json({ message: 'courseId y teacherId son requeridos.' });
+    }
+
+    const result = await getSections({ courseId, teacherId });
+
+    res.status(200).json(result);
+  } catch (error) {
+    const status = error.message.includes('no encontrado') ? 404 : 500;
+    res.status(status).json({ message: error.message });
   }
 };
 
