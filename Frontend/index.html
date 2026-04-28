@@ -155,6 +155,38 @@
     <button class="btn-outline-custom w-100" onclick="showPage('page-auth')"><i class="bi bi-arrow-left"></i> Volver</button>
   </div>
 </div>
+<!-- RESET PASSWORD PAGE (HU-07 paso 2) -->
+<div id="page-reset" class="page" style="display:none; min-height:100vh; align-items:center; justify-content:center; padding:0; margin-left:-260px; width:100vw;">
+  <div class="auth-card">
+    <div class="brand">
+      <div class="brand-name">Digit<span>a</span>lito</div>
+      <p class="text-muted-custom mt-2">Nueva Contraseña</p>
+    </div>
+    <div id="reset-alert"></div>
+
+    <!-- Token oculto — se rellena automáticamente desde la URL -->
+    <input type="hidden" id="resetToken" value=""/>
+
+    <div class="mb-3">
+      <label class="form-label">Nueva Contraseña *</label>
+      <input type="password" class="form-control" id="resetNewPassword" placeholder="Mínimo 8 caracteres"/>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Confirmar Contraseña *</label>
+      <input type="password" class="form-control" id="resetConfirmPassword" placeholder="Repite la nueva contraseña"/>
+    </div>
+    <div class="mb-3" style="font-size:12px; color:var(--text-muted);">
+      <i class="bi bi-info-circle"></i>
+      La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un símbolo.
+    </div>
+    <button class="btn-primary-custom mb-3" onclick="doResetPassword()">
+      <i class="bi bi-shield-check"></i> Guardar Nueva Contraseña
+    </button>
+    <button class="btn-outline-custom w-100" onclick="showPage('page-auth')">
+      <i class="bi bi-arrow-left"></i> Volver al inicio de sesión
+    </button>
+  </div>
+</div>
 
 <!-- HOME / DASHBOARD -->
 <div id="page-home" class="page">

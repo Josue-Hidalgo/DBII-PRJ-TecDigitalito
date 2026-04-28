@@ -37,7 +37,7 @@ const enqueueNotification = async (userId, email, tipo, metadata = {}) => {
   const now    = Date.now();
 
   const data = {
-    user_id:        userId,
+    user_id:        userId.toString(),
     email,
     tipo,
     metadata: {

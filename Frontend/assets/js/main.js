@@ -84,7 +84,7 @@ function showPage(id) {
   if (!el) return;
 
   // Auth/forgot pages need special flex layout
-  if (id === 'page-auth' || id === 'page-forgot') {
+  if (id === 'page-auth' || id === 'page-forgot' || id === 'page-reset') {
     el.style.display = 'flex';
     document.getElementById('sidebar').style.display = 'none';
     document.getElementById('main-content').style.marginLeft = '0';
@@ -140,7 +140,7 @@ async function doLogin() {
   try {
     const { ok, data } = await api('POST', '/api/auth/login', { username, password, rememberMe });
     if (ok) {
-      currentUser = { ...data.user, token: data.token };
+      currentUser = { ...data.user, token: data.sessionToken };
       onLogin();
     } else {
       showAlert('auth-alert', data.message || 'Credenciales inválidas.', 'danger');
@@ -184,6 +184,7 @@ async function doRegister() {
 // ===============================================
 //  AUTH — FORGOT PASSWORD
 // ===============================================
+// ── Reset password desde enlace de correo (HU-07 paso 2) ──────────────────
 async function doForgotPassword() {
   clearAlert('forgot-alert');
   const email = document.getElementById('forgotEmail').value.trim();
@@ -193,7 +194,7 @@ async function doForgotPassword() {
   try {
     const { ok, data } = await api('POST', '/api/password/forgot', { email });
     if (ok) {
-      showAlert('forgot-alert', 'Se ha enviado un enlace de recuperación a tu correo.', 'success');
+      showAlert('forgot-alert', data.message || 'Si el correo existe, recibirás un enlace en minutos. Revisa también tu carpeta de spam.', 'success');
     } else {
       showAlert('forgot-alert', data.message || 'Error al enviar el correo.', 'danger');
     }
@@ -201,6 +202,34 @@ async function doForgotPassword() {
     showAlert('forgot-alert', 'Error de conexión.', 'danger');
   } finally { hideSpinner(); }
 }
+
+// ===============================================
+//  AUTH — RESET PASSWORD (HU-07 paso 2)
+// ===============================================
+async function doResetPassword() {
+  clearAlert('reset-alert');
+  const newPassword = document.getElementById('resetNewPassword').value;
+  const confirm     = document.getElementById('resetConfirmPassword').value;
+  const resetToken  = document.getElementById('resetToken').value;
+
+  if (!newPassword || !confirm) return showAlert('reset-alert', 'Completa todos los campos.', 'warning');
+  if (newPassword !== confirm)  return showAlert('reset-alert', 'Las contraseñas no coinciden.', 'danger');
+  if (!resetToken)              return showAlert('reset-alert', 'Token inválido. Solicita un nuevo enlace.', 'danger');
+
+  showSpinner();
+  try {
+    const { ok, data } = await api('POST', '/api/password/reset', { resetToken, newPassword });
+    if (ok) {
+      showAlert('reset-alert', '¡Contraseña restablecida! Ahora puedes iniciar sesión.', 'success');
+      setTimeout(() => showPage('page-auth'), 2500);
+    } else {
+      showAlert('reset-alert', data.message || 'Error al restablecer la contraseña.', 'danger');
+    }
+  } catch(e) {
+    showAlert('reset-alert', 'Error de conexión.', 'danger');
+  } finally { hideSpinner(); }
+}
+
 
 // ===============================================
 //  ON LOGIN
@@ -2018,8 +2047,27 @@ document.getElementById('menuToggle').addEventListener('click', () => {
 });
 
 // Initialize â\x80\x94 show auth page
-showPage('page-auth');
+// Detectar token de reset en la URL (index.html#reset?token=XXX)
+(function checkResetToken() {
+  const hash = window.location.hash;
+  if (hash.startsWith('#reset')) {
+    const tokenMatch = hash.match(/token=([a-f0-9]+)/);
+    const token = tokenMatch ? tokenMatch[1] : null;
+    if (token) {
+      document.getElementById('resetToken').value = token;
+      showPage('page-reset');
+      return;
+    }
+  }
+  showPage('page-auth');
+})();
 
 window.loadThreadMessages = loadThreadMessages;
 window.replyToThread = replyToThread;
 window.sendQuery = sendQuery;
+window.doForgotPassword = doForgotPassword;
+window.doResetPassword = doResetPassword;
+window.doLogin = doLogin;
+window.doRegister = doRegister;
+window.logout = logout;
+
